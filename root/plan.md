@@ -2,7 +2,7 @@
 
 ## Cleanup Section (Sark)
 
-### 1. Fix Drop Shadows to Align with Figma
+### 1. Fix Drop Shadows to Align with Figma (Sark)
 - **Files**: `root/css/style.css`, `root/js/timelineVis.js`
 - **Tasks**:
   - Review Figma design specifications for drop shadow values
@@ -11,7 +11,7 @@
   - Update timeline track drop-shadow in `timelineVis.js` line 47 (currently `drop-shadow(0px 4px 1px rgba(0,0,0,0.25))`)
   - Ensure all shadows match Figma specifications exactly
 
-### 2. Round Corners of Triangle Selector
+### 2. Round Corners of Triangle Selector (Sark)
 - **Files**: `root/js/timelineVis.js`
 - **Tasks**:
   - Replace polygon handle (line 66-69) with a rounded shape
@@ -28,7 +28,7 @@
   - Ensure scroll doesn't conflict with timeline drag interaction
   - Add option to enable/disable scroll-based time changing
 
-### 4. Fix Circle Animation (Don't Go to Zero)
+### 4. Fix Circle Animation (Don't Go to Zero) (Sark)
 - **Files**: `root/js/mapVis.js`
 - **Tasks**:
   - Modify `updateVis()` method (lines 224-262)
@@ -37,7 +37,7 @@
   - Use D3's key function more effectively to track circles by location
   - Smooth transitions between years without disappearing/reappearing
 
-### 5. Check Map Sizing to Circle Position
+### 5. Check Map Sizing to Circle Position 
 - **Files**: `root/js/mapVis.js`
 - **Tasks**:
   - Verify coordinate scaling in `initVis()` (lines 72-79)
@@ -46,9 +46,22 @@
   - Test with edge cases (min/max latitude/longitude)
   - Adjust padding or bounds if circles are misaligned
 
+### 6. Switch to Bootstrap and Add Title (Viktoriia)
+- **Files**: `root/index.html`, `root/css/style.css`, `root/js/main.js`
+- **Tasks**:
+  - Refactor layout to use Bootstrap grid system and utility classes
+  - Replace custom positioning (absolute positioning) with Bootstrap containers, rows, and columns
+  - Use Bootstrap components where appropriate (buttons, cards, etc.)
+  - Migrate custom CSS to Bootstrap utility classes where possible
+  - Add page title/tile at the top of the visualization
+  - Style title with Bootstrap typography classes
+  - Ensure responsive design using Bootstrap breakpoints
+  - Maintain current visual design while leveraging Bootstrap structure
+  - Test layout across different screen sizes
+
 ## Additional Features Section
 
-### 6. Filtering by Vehicle Type
+### 7. Filtering by Vehicle Type
 - **Files**: `root/index.html`, `root/js/main.js`, `root/js/mapVis.js`, `root/css/style.css`
 - **Tasks**:
   - Add vehicle type checkboxes to options panel in `index.html`
@@ -59,7 +72,7 @@
   - Connect checkboxes in `main.js` similar to severity filters
   - Style vehicle type filters in CSS
 
-### 7. Two Map Year Comparison
+### 8. Two Map Year Comparison
 - **Files**: `root/index.html`, `root/js/main.js`, `root/js/mapVis.js`, `root/css/style.css`
 - **Tasks**:
   - Add toggle/button in options panel to enable comparison mode
@@ -70,7 +83,7 @@
   - Add year selector for second map
   - Style comparison mode UI
 
-### 8. Location Distribution Graph in Options Panel
+### 9. Location Distribution Graph in Options Panel (Viktoriia)
 - **Files**: `root/index.html`, `root/js/main.js`, `root/css/style.css`
 - **Tasks**:
   - Create new `LocationChart.js` class for neighborhood distribution
@@ -81,7 +94,7 @@
   - Update chart when year or filters change
   - Style chart to fit in options panel (compact design)
 
-### 9. Zoom and Pan on Map
+### 10. Zoom and Pan on Map (Sark)
 - **Files**: `root/js/mapVis.js`
 - **Tasks**:
   - Implement D3 zoom behavior using `d3.zoom()`
@@ -92,7 +105,7 @@
   - Reset zoom button
   - Store zoom state and restore on year change if desired
 
-### 10. City Labels on Map
+### 11. City Labels on Map (Sark)
 - **Files**: `root/js/mapVis.js`, `root/css/style.css`
 - **Tasks**:
   - Define Toronto neighborhood/city center coordinates
@@ -102,7 +115,7 @@
   - Ensure labels don't overlap with crash circles
   - Make labels responsive to zoom level (show/hide based on zoom)
 
-### 11. Old-Fashioned Map Design Features
+### 12. Old-Fashioned Map Design Features (Sark)
 - **Files**: `root/js/mapVis.js`, `root/css/style.css`
 - **Tasks**:
   - Change map background to parchment/aged paper color/texture
@@ -114,7 +127,7 @@
   - Add map title/legend styling
   - Consider sepia tone color scheme
 
-### 12. Faster Loading by Removing Data
+### 13. Faster Loading by Removing Data
 - **Files**: `root/js/main.js`
 - **Tasks**:
   - Analyze data size and identify optimization opportunities
@@ -126,7 +139,7 @@
   - Add loading indicator
   - Measure and document performance improvement
 
-### 13. Tooltip on Circles
+### 14. Tooltip on Circles
 - **Files**: `root/js/mapVis.js`, `root/css/style.css`
 - **Tasks**:
   - Create tooltip div in HTML or dynamically in D3
@@ -140,7 +153,7 @@
   - Style tooltip with appropriate background, border, padding
   - Hide tooltip on mouseout
 
-### 14. Commentary on Timeline for Toronto Changes
+### 15. Commentary on Timeline for Toronto Changes
 - **Files**: `root/js/timelineVis.js`, `root/index.html`, `root/css/style.css`
 - **Tasks**:
   - Research significant Toronto events/changes by year
@@ -151,7 +164,7 @@
   - Examples: new transit lines, major construction, policy changes affecting traffic
   - Update commentary when year changes via drag or scroll
 
-### 15. Road Improvement Suggestions Based on Driver/Pedestrian Actions
+### 16. Road Improvement Suggestions Based on Driver/Pedestrian Actions (Dz)
 - **Files**: `root/js/mapVis.js`, `root/index.html`, `root/css/style.css`, `root/js/main.js`
 - **Tasks**:
   - Analyze crash data for patterns in driver/pedestrian actions
@@ -178,5 +191,9 @@
   - Style improvement markers distinctly from crash circles
   - Update suggestions when year or filters change
 
-
-
+### 17. Play Button to Run Through Timeline (Viktoriia)
+- **Files**: `root/js/timelineVis.js`, `root/index.html`, `root/css/style.css`, `root/js/main.js`
+- **Tasks**:
+  - Add play button to timeline area (near timeline slider)
+  - Create play button UI element with play and pause icons
+  
