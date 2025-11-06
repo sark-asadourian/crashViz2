@@ -1,0 +1,138 @@
+/* Main Container */
+#main-container {
+    position: relative;
+    width: 1280px;
+    height: 832px;
+    margin: 0 auto;
+    background-color: #e7e5df;
+    border-radius: 12px;
+    box-shadow: 0px 4px 1px 0px rgba(0,0,0,0.25);
+    padding: 0;
+}
+
+/* Map Visualization */
+#mapDiv {
+    position: absolute;
+    left: 112px;
+    top: 83px;
+    width: 829px;
+    height: 609.88px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Options Panel */
+#options-panel {
+    position: absolute;
+    left: 959px;
+    top: 83px;
+    width: 219px;
+    height: 613px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0px 4px 1px 0px inset rgba(0,0,0,0.25);
+    padding: 20px;
+}
+
+.options-title {
+    font-family: 'Overpass', sans-serif;
+    font-weight: 800;
+    font-size: 25px;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.filter-option {
+    margin-bottom: 15px;
+}
+
+.filter-option input[type="checkbox"] {
+    display: none;
+}
+
+.filter-option label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.filter-indicator {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1px solid #000;
+    margin-right: 8px;
+    position: relative;
+}
+
+.filter-option input[type="checkbox"]:checked + label .filter-indicator::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.filter-label {
+    font-family: 'Overpass', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: #000;
+    margin-right: auto;
+}
+
+.filter-checkbox {
+    width: 13px;
+    height: 13px;
+    border-radius: 2px;
+}
+
+.filter-checkbox.fatal {
+    background-color: rgba(226,55,55,0.76);
+}
+
+.filter-checkbox.major {
+    background-color: rgba(237,119,55,0.8);
+}
+
+.filter-checkbox.minor {
+    background-color: rgba(237,225,55,0.8);
+}
+
+.filter-checkbox.minimal {
+    background-color: rgba(128,128,128,0.8);
+}
+
+/* Timeline Slider */
+#timelineDiv {
+    position: absolute;
+    left: 110px;
+    top: 724px;
+    width: 831px;
+    height: 27px;
+}
+
+/* Body styling */
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Overpass', sans-serif;
+    background-color: #f5f5f5;
+    min-height: 200vh; /* Enable scrolling */
+}
+
+/* Crash points */
+.crash-point {
+    cursor: pointer;
+}
+
+.crash-point:hover {
+    opacity: 1 !important;
+    stroke-width: 2px;
+}
+
