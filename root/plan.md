@@ -151,3 +151,32 @@
   - Examples: new transit lines, major construction, policy changes affecting traffic
   - Update commentary when year changes via drag or scroll
 
+### 15. Road Improvement Suggestions Based on Driver/Pedestrian Actions
+- **Files**: `root/js/mapVis.js`, `root/index.html`, `root/css/style.css`, `root/js/main.js`
+- **Tasks**:
+  - Analyze crash data for patterns in driver/pedestrian actions
+  - Identify locations with high frequency of specific action types:
+    - "Pedestrian Action" column (e.g., crossing at intersection, crossing mid-block)
+    - "Apparent Driver Action" column (e.g., failed to yield, improper turn)
+    - "Pedestrian Involved" and "Cyclist Involved" flags
+  - Create algorithm to suggest improvements:
+    - High pedestrian crashes → suggest crosswalks, pedestrian signals
+    - High cyclist crashes → suggest bike lanes, cyclist infrastructure
+    - High "failed to yield" → suggest better signage, traffic lights
+    - High "improper turn" → suggest turn restrictions, better lane markings
+  - Add toggle/button in options panel to show/hide improvement suggestions
+  - Render improvement suggestion markers on map (different visual style from crash points)
+    - Use distinct icons (e.g., crosswalk icon, sign icon, bike lane icon)
+    - Different color scheme (e.g., blue or green) to distinguish from crash points
+  - Cluster improvement suggestions by location
+  - Add tooltip/info panel showing:
+    - Suggested improvement type
+    - Number of crashes that would benefit
+    - Specific action patterns that led to suggestion
+    - Priority level based on crash frequency/severity
+  - Allow filtering by improvement type (crosswalks, signs, bike lanes, etc.)
+  - Style improvement markers distinctly from crash circles
+  - Update suggestions when year or filters change
+
+
+
