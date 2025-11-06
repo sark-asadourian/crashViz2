@@ -82,11 +82,11 @@ class MapVis {
         vis.latScale = vis.yScale;
         vis.lngScale = vis.xScale;
 
-        // Draw map background (grayscale Toronto map)
+        // Draw map background 
         vis.mapBackground = vis.svg.append("rect")
             .attr("width", vis.width)
             .attr("height", vis.height)
-            .attr("fill", "#f5f5f5")
+            .attr("fill", "#ffffff")
             .attr("rx", 12);
 
         // Draw GeoJSON if available
@@ -97,7 +97,7 @@ class MapVis {
             
             vis.projection = d3.geoMercator()
                 .center([centerLng, centerLat])
-                .scale(vis.width * 15)
+                .scale(vis.width * 100)
                 .translate([vis.width / 2, vis.height / 2]);
 
             vis.path = d3.geoPath()
@@ -111,9 +111,8 @@ class MapVis {
                 .attr("class", "road")
                 .attr("d", vis.path)
                 .attr("fill", "none")
-                .attr("stroke", "#d0d0d0")
-                .attr("stroke-width", 0.3)
-                .attr("opacity", 0.6);
+                .attr("stroke", "#a7a7a7")
+                .attr("stroke-width", 0.3);
         }
 
         vis.wrangleData();
@@ -206,7 +205,7 @@ class MapVis {
             );
 
             // Size based on cluster size
-            let size = Math.min(61, Math.max(26, 26 + cluster.length * 5));
+            let size = Math.min(61, Math.max(3, 3 + cluster.length * 3));
 
             return {
                 x: basePoint.x,

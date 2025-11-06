@@ -1,8 +1,8 @@
 /* Main Container */
 #main-container {
     position: relative;
-    width: 1280px;
-    height: 832px;
+    width: 1250px;
+    height: 700px;
     margin: 0 auto;
     background-color: #e7e5df;
     border-radius: 12px;
@@ -14,7 +14,7 @@
 #mapDiv {
     position: absolute;
     left: 112px;
-    top: 83px;
+    top: 20px;
     width: 829px;
     height: 609.88px;
     border-radius: 12px;
@@ -25,7 +25,7 @@
 #options-panel {
     position: absolute;
     left: 959px;
-    top: 83px;
+    top: 20px;
     width: 219px;
     height: 613px;
     background-color: #fff;
@@ -112,9 +112,9 @@
 #timelineDiv {
     position: absolute;
     left: 110px;
-    top: 724px;
+    top: 640px;
     width: 831px;
-    height: 27px;
+    height: 60px;
 }
 
 /* Body styling */
@@ -123,7 +123,7 @@ body {
     padding: 20px;
     font-family: 'Overpass', sans-serif;
     background-color: #f5f5f5;
-    min-height: 200vh; /* Enable scrolling */
+    height: 100vh;
 }
 
 /* Crash points */

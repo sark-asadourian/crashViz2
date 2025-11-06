@@ -19,7 +19,8 @@ class TimelineVis {
 
         vis.margin = {top: 0, right: 0, bottom: 40, left: 0};
         vis.width = 831 - vis.margin.left - vis.margin.right;
-        vis.height = 27 - vis.margin.top - vis.margin.bottom;
+        // Use a positive inner height so content isn't clipped
+        vis.height = 27;
 
         // init drawing area
         vis.svg = d3.select("#" + vis.parentElement)
@@ -32,7 +33,7 @@ class TimelineVis {
         // Year scale
         vis.yearScale = d3.scaleTime()
             .domain([new Date(vis.yearRange[0], 0, 1), new Date(vis.yearRange[1], 0, 1)])
-            .range([13, vis.width - 13]);
+            .range([35, vis.width]);
 
         // Create slider track
         vis.track = vis.svg.append("rect")
@@ -41,7 +42,7 @@ class TimelineVis {
             .attr("y", 0)
             .attr("width", vis.width)
             .attr("height", vis.height)
-            .attr("rx", 25)
+            .attr("rx", 7)
             .attr("fill", "#fff")
             .style("filter", "drop-shadow(0px 4px 1px rgba(0,0,0,0.25))");
 
@@ -56,23 +57,6 @@ class TimelineVis {
             .attr("stroke-width", 1)
             .attr("stroke-dasharray", "5,5");
 
-        // Start and end markers
-        vis.startMarker = vis.svg.append("rect")
-            .attr("class", "timeline-marker")
-            .attr("x", 0)
-            .attr("y", vis.height / 2 - 6)
-            .attr("width", 13)
-            .attr("height", 12)
-            .attr("fill", "#fff");
-
-        vis.endMarker = vis.svg.append("rect")
-            .attr("class", "timeline-marker")
-            .attr("x", vis.width - 13)
-            .attr("y", vis.height / 2 - 6)
-            .attr("width", 13)
-            .attr("height", 12)
-            .attr("fill", "#fff");
-
         // Create triangular handle
         let initialX = vis.yearScale(new Date(vis.selectedYear, 0, 1));
         vis.handle = vis.svg.append("g")
@@ -81,7 +65,8 @@ class TimelineVis {
 
         vis.handle.append("polygon")
             .attr("points", "-18.5,-18.5 0,0 -18.5,18.5")
-            .attr("fill", "#000");
+            .attr("fill", "#ec6b68")
+            .attr("transform", "rotate(90)");
 
         // Year labels - dynamically generate based on year range
         vis.years = [];
