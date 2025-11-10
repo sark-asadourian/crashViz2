@@ -1,37 +1,69 @@
 /* Main Container */
 #main-container {
     position: relative;
-    width: 1250px;
-    height: 700px;
-    margin: 0 auto;
-    background-color: #e7e5df;
-    border-radius: 12px;
-    box-shadow: 0px 4px 1px 0px rgba(0,0,0,0.25);
-    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Map Visualization */
 #mapDiv {
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#timelineDiv {
+    width: 900px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.action-controls {
+    width: 100% !important;
+    max-width: 900px;
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+#actionHotspotDiv {
     position: absolute;
     left: 112px;
-    top: 20px;
+    top: 730px;
     width: 829px;
-    height: 609.88px;
+    height: 609px;
     border-radius: 12px;
     overflow: hidden;
+    background: #000000;
+    border: 2px solid #333333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 /* Options Panel */
 #options-panel {
     position: absolute;
+    order: 3;
     left: 959px;
-    top: 20px;
+    top: 60px;
     width: 219px;
-    height: 613px;
-    background-color: #fff;
+    height: 580px;
+    background: rgba(255, 255, 255, 0.15) !important;
     border-radius: 12px;
-    box-shadow: 0px 4px 1px 0px inset rgba(0,0,0,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     padding: 20px;
+    z-index: 100;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 .options-title {
@@ -108,31 +140,641 @@
     background-color: rgba(128,128,128,0.8);
 }
 
-/* Timeline Slider */
-#timelineDiv {
-    position: absolute;
-    left: 110px;
-    top: 640px;
-    width: 831px;
-    height: 60px;
-}
-
 /* Body styling */
 body {
     margin: 0;
     padding: 20px;
     font-family: 'Overpass', sans-serif;
-    background-color: #f5f5f5;
-    height: 100vh;
+    background: linear-gradient(135deg, #e0b92b 0%, #8342bd 50%, #531994 75%, #4b1e7a 100%) fixed;
+    min-height: 100vh;
 }
 
 /* Crash points */
 .crash-point {
     cursor: pointer;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    transition: all 0.3s ease;
+    vector-effect: non-scaling-stroke;
 }
 
 .crash-point:hover {
     opacity: 1 !important;
-    stroke-width: 2px;
+    stroke-width: 3px !important;
+    filter: drop-shadow(0 2px 6px rgba(255,255,255,0.3));
+}
+
+/* Action Hotspot specific styles */
+.action-hotspot-tooltip {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 250px;
+    font-family: Arial, sans-serif;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.action-controls select {
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    font-size: 12px;
+    margin-right: 10px;
+}
+
+.action-controls label {
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 5px;
+    color: white !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.hotspot-legend {
+    font-size: 11px;
+    color: #333;
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.hotspot-legend div:first-child {
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #333;
+    font-size: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    border: 1px solid #666;
+    border-radius: 3px;
+}
+
+.vis-title {
+    font-size: 16px;
+    font-weight: bold;
+    fill: white !important;
+    font-family: 'Overpass', sans-serif;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Action cluster points */
+.action-cluster {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    vector-effect: non-scaling-stroke;
+}
+
+.action-cluster:hover {
+    .action-cluster:hover,
+    .individual-point:hover {
+        stroke-width: 3px !important;
+        opacity: 1 !important;
+        cursor: pointer;
+        filter: drop-shadow(0 0 8px rgba(0,0,0,0.3));
+        transform: scale(1.02);
+    }
+
+/* Action cluster colors */
+.action-cluster[data-type="driver"] {
+    fill: #8a2be2 !important;
+}
+
+.action-cluster[data-type="pedestrian"] {
+    fill: #a52a2a !important;
+}
+
+.action-cluster[data-type="cyclist"] {
+    fill: #1e90ff !important;
+}
+
+/* Individual points hover effects */
+.individual-point {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    vector-effect: non-scaling-stroke;
+}
+
+.individual-point:hover {
+    filter: brightness(1.2);
+    transform: scale(1.1);
+    stroke-width: 3px !important;
+    opacity: 1 !important;
+}
+
+.individual-point[fill="#98cef4"]:hover {
+    stroke: #1976d2 !important;
+}
+
+.individual-point[fill="#f67171"]:hover {
+    stroke: #d32f2f !important;
+}
+
+.individual-point[fill="#1eff5e"]:hover {
+    stroke: #388e3c !important;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+    font-family: Arial, sans-serif;
+}
+
+.zoom-btn {
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.zoom-btn:hover {
+    background: #f0f0f0 !important;
+    transform: scale(1.05);
+}
+
+.zoom-btn:active {
+    background: #e0e0e0 !important;
+    transform: scale(0.95);
+}
+
+.zoom-in, .zoom-out, .zoom-reset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ensure map elements are zoomable */
+.road {
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+}
+
+/* Stats Panel */
+.stats-panel {
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.stats-title {
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.stats-content div {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+/* Pie Charts */
+.pie-charts-container {
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.pie-charts-title {
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.pie-chart-container {
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    background: #f9f9f9;
+}
+
+.pie-chart-container.driver-pie {
+    border-left: 3px solid #e41a1c;
+}
+
+.pie-chart-container.pedestrian-pie {
+    border-left: 3px solid #377eb8;
+}
+
+.pie-chart-container.cyclist-pie {
+    border-left: 3px solid #4daf4a;
+}
+
+.pie-charts-content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.filter-section {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.section-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.analysis-btn, .improvement-btn {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #f8f9fa;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.analysis-btn:hover, .improvement-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.analysis-btn.active, .improvement-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.form-select {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+#improvements-panel {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    width: 300px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    z-index: 1000;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.improvements-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.improvement-item {
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+}
+
+.improvement-item h5 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.improvement-item p {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.improvement-item .location {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.action-hotspot {
+    stroke: #fff;
+    stroke-width: 1;
+    opacity: 0.8;
+}
+
+.action-legend {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+
+
+/* Action Analysis Button */
+.action-analysis-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Overpass', sans-serif;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: white !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.action-analysis-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.action-analysis-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Loading indicator */
+#loading-indicator {
+    font-family: 'Overpass', sans-serif;
+    font-weight: bold;
+}
+
+/* Performance optimizations */
+.individual-point {
+    vector-effect: non-scaling-stroke;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Solution Gist Styles */
+.solution-gist {
+    backdrop-filter: blur(10px);
+    border: 2px solid #4CAF50 !important;
+    animation: fadeInUp 0.3s ease-out;
+    font-family: 'Overpass', sans-serif;
+    pointer-events: auto !important;
+}
+
+.solution-gist::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 20px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid #4CAF50;
+}
+
+.clickable-solution {
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.clickable-solution:hover {
+    background: #e8f5e8 !important;
+    transform: translateX(2px) !important;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Modal Styles */
+    /* Ensure solution detail modal appears above everything */
+    .solution-detail-modal {
+        z-index: 10001 !important;
+    }
+
+    .detailed-view-modal {
+        z-index: 10000 !important;
+    }
+
+    /* Make sure the close button is always clickable */
+    .close-solution-detail {
+        z-index: 10002 !important;
+    }
+
+    /* Better scrolling for solution details */
+    .solution-detail-modal > div {
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+    }
+
+
+.view-full-analysis-btn:hover {
+    background: #45a049 !important;
+    transform: translateY(-1px);
+}
+
+/* Solution cards in detailed view */
+.clickable-solution-detailed {
+    transition: all 0.3s ease;
+}
+
+.clickable-solution-detailed:hover {
+    background: #e8f5e8 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15) !important;
+}
+    /* Force scrollbar to always be visible */
+    .detailed-view-modal {
+        overflow: auto !important;
+    }
+
+    /* Ensure the modal content container allows scrolling */
+    .detailed-view-modal > div {
+        overflow: hidden !important;
+    }
+
+    /* Make sure the content area is scrollable */
+    .detailed-view-modal .content-area {
+        overflow-y: auto !important;
+    }
+
+    /* Custom scrollbar styling */
+    .detailed-view-modal ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .detailed-view-modal ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .detailed-view-modal ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+
+    .detailed-view-modal ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+/* Timeline elements */
+.timeline-track {
+    fill: rgba(255, 255, 255, 0.1) !important;
+}
+
+.year-label {
+    fill: white !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Improvement suggestions panel */
+.improvements-panel {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .detailed-view-modal > div {
+        grid-template-columns: 1fr !important;
+        width: 95% !important;
+        max-height: 90vh !important;
+    }
+
+    .detailed-view-modal > div > div:first-child {
+        border-right: none !important;
+        border-bottom: 1px solid #eee;
+    }
+}
+}
+
+.detailed-view-modal > div {
+    max-width: 1000px !important;
+    max-height: 90vh !important;
+    width: 95% !important;
+}
+
+/* Ensure content areas scroll properly */
+.detailed-view-modal .content-column {
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+}
+
+/* Better spacing for the detailed view */
+.detailed-view-modal .section {
+    margin-bottom: 25px;
+}
+
+.detailed-view-modal .section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 8px;
+}
+
+.zoom-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.zoom-btn {
+    display: block;
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 5px;
+    transition: all 0.2s ease;
+}
+
+.zoom-btn:hover {
+    background: #f8f9fa;
+    border-color: #999;
+    transform: scale(1.05);
+}
+
+.zoom-reset {
+    font-size: 16px;
+}
+
+.zoomable-svg {
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+.zoomable-svg:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+/* Make sure parent containers are positioned relatively */
+#action-hotspot-map, #regular-map {
+    position: relative;
 }
 
