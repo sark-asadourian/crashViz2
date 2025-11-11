@@ -161,10 +161,12 @@ function initMainPage(crashData, geoData, solutionsData) {
     let maxYear = Math.max(...years);
 
     console.log('Year range:', minYear, 'to', maxYear);
-    console.log('Available years:', [...new Set(years)].sort());
 
     const mapContainer = d3.select('#mapDiv');
     mapContainer.html('');
+
+    // Position the original options panel
+    createOriginalOptionsPanel();
 
     myMapVis = new MapVis('mapDiv', crashData, geoData);
     myTimelineVis = new TimelineVis('timelineDiv', [minYear, maxYear]);
@@ -175,6 +177,9 @@ function initMainPage(crashData, geoData, solutionsData) {
 
     myTimelineVis.onYearChange = function(year) {
         console.log('Year changed to:', year);
+        // Update the current year display in options panel
+        d3.select('#current-year').text(`Current Year: ${year}`);
+
         if (isActionAnalysisMode && myActionHotspotVis) {
             myActionHotspotVis.setYear(year);
         } else if (myMapVis) {
@@ -196,10 +201,222 @@ function showActionAnalysis() {
     const mapContainer = d3.select('#mapDiv');
     mapContainer.html('');
 
-    d3.select('#options-panel').style('display', 'none');
+    // Hide the original options panel
+    d3.select("#options-panel").remove();
+
+    // Remove any existing action analysis panel first
+    d3.select("#action-analysis-panel").remove();
+
+    // Create Action Analysis panel positioned further to the right
+    const actionAnalysisPanel = d3.select("body")
+        .append("div")
+        .attr("id", "action-analysis-panel")
+        .style("position", "absolute")
+        .style("top", "70px")
+        .style("right", "40px")
+        .style("width", "280px")
+        .style("background", "rgb(25,5,5)")
+        .style("border", "1px solid #ccc")
+        .style("border-radius", "8px")
+        .style("padding", "15px")
+        .style("z-index", "1000")
+        .style("box-shadow", "0 4px 12px rgba(0,0,0,0.15)")
+        .style("max-height", "80vh")
+        .style("overflow-y", "auto");
+
+    // Add title
+    actionAnalysisPanel.append("h3")
+        .text("Action Analysis")
+        .style("margin-top", "0")
+        .style("margin-bottom", "10px")
+        .style("color", "#190505")
+        .style("border-bottom", "2px solid #007bff")
+        .style("padding-bottom", "8px")
+        .style("font-size", "16px");
+
+
+    // Year display
+    actionAnalysisPanel.append("div")
+        .attr("id", "action-year")
+        .style("margin-bottom", "12px")
+        .style("padding", "6px")
+        .style("background", "#f8f9fa")
+        .style("border-radius", "4px")
+        .style("text-align", "center")
+        .style("font-weight", "bold")
+        .style("color", "#007bff")
+        .style("font-size", "12px")
+        .text(`Year: ${myTimelineVis ? myTimelineVis.selectedYear : '2006'}`);
+
+    // Mode selector
+    actionAnalysisPanel.append("div")
+        .style("margin-bottom", "12px")
+        .html(`
+            <div style="margin-bottom: 4px; font-weight: bold; color: #333; font-size: 12px;">Mode:</div>
+            <select id="analysis-mode" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px;">
+                <option value="individual">individual</option>
+                <option value="cluster">cluster</option>
+                <option value="heatmap">heatmap</option>
+            </select>
+        `);
+
+    // Type selector
+    actionAnalysisPanel.append("div")
+        .style("margin-bottom", "12px")
+        .html(`
+            <div style="margin-bottom: 4px; font-weight: bold; color: #333; font-size: 12px;">Type:</div>
+            <select id="analysis-type" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px;">
+                <option value="all">All</option>
+                <option value="driver">Driver</option>
+                <option value="pedestrian">Pedestrian</option>
+                <option value="cyclist">Cyclist</option>
+            </select>
+        `);
+
+    // Action selector
+    actionAnalysisPanel.append("div")
+        .style("margin-bottom", "12px")
+        .html(`
+            <div style="margin-bottom: 4px; font-weight: bold; color: #333; font-size: 12px;">Action:</div>
+            <select id="analysis-action" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px;">
+                <option value="all">All Actions</option>
+            </select>
+        `);
+
+    // Display Mode section
+    const displayModeSection = actionAnalysisPanel.append("div")
+        .style("margin-bottom", "12px");
+
+    displayModeSection.append("div")
+        .style("margin-bottom", "6px")
+        .style("font-weight", "bold")
+        .style("color", "#333")
+        .style("font-size", "12px")
+        .text("Display Mode");
+
+    displayModeSection.append("label")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("margin-bottom", "4px")
+        .style("font-size", "11px")
+        .html(`
+            <input type="radio" name="display-mode" value="individual" checked style="margin-right: 6px;">
+            Show Individual Accidents
+        `);
+
+    displayModeSection.append("label")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("margin-bottom", "4px")
+        .style("font-size", "11px")
+        .html(`
+            <input type="radio" name="display-mode" value="cluster" style="margin-right: 6px;">
+            Show Clusters
+        `);
+
+    displayModeSection.append("label")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("margin-bottom", "4px")
+        .style("font-size", "11px")
+        .html(`
+            <input type="radio" name="display-mode" value="heatmap" style="margin-right: 6px;">
+            Show Heatmap
+        `);
+
+    // Action Type section
+    const actionTypeSection = actionAnalysisPanel.append("div")
+        .style("margin-bottom", "12px");
+
+    actionTypeSection.append("div")
+        .style("margin-bottom", "6px")
+        .style("font-weight", "bold")
+        .style("color", "#333")
+        .style("font-size", "12px")
+        .text("Action Type");
+
+    actionTypeSection.append("label")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("margin-bottom", "4px")
+        .style("font-size", "11px")
+        .html(`
+            <input type="radio" name="action-type" value="all" checked style="margin-right: 6px;">
+            All Actions
+        `);
+
+    actionTypeSection.append("label")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("margin-bottom", "4px")
+        .style("font-size", "11px")
+        .html(`
+            <input type="radio" name="action-type" value="specific" style="margin-right: 6px;">
+            Specific Action
+        `);
+
+    // Specific Action selector
+    actionAnalysisPanel.append("div")
+        .style("margin-bottom", "12px")
+        .html(`
+            <div style="margin-bottom: 4px; font-weight: bold; color: #333; font-size: 12px;">Specific Action:</div>
+            <select id="specific-action" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 11px;">
+                <option value="all">All</option>
+            </select>
+        `);
+
+    // Action Types legend
+    const legendSection = actionAnalysisPanel.append("div")
+        .style("margin-bottom", "12px");
+
+    legendSection.append("div")
+        .style("margin-bottom", "6px")
+        .style("font-weight", "bold")
+        .style("color", "#333")
+        .style("font-size", "12px")
+        .text("Action Types:");
+
+    const actionTypes = [
+        { type: "Driver", color: "#e23725" },
+        { type: "Pedestrian", color: "#007bff" },
+        { type: "Cyclist", color: "#28a745" }
+    ];
+
+    actionTypes.forEach(action => {
+        legendSection.append("div")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("margin-bottom", "4px")
+            .style("font-size", "11px")
+            .html(`
+                <span style="display: inline-block; width: 10px; height: 10px; background: ${action.color}; border-radius: 2px; margin-right: 6px;"></span>
+                ${action.type}
+            `);
+    });
+
+    // Improvement Suggestions section
+    const suggestionsSection = actionAnalysisPanel.append("div");
+
+    suggestionsSection.append("div")
+        .style("margin-bottom", "6px")
+        .style("font-weight", "bold")
+        .style("color", "#333")
+        .style("font-size", "12px")
+        .text("Improvement Suggestions");
+
+    suggestionsSection.append("button")
+        .attr("id", "show-suggestions")
+        .text("Show Suggestions")
+        .style("width", "100%")
+        .style("padding", "6px")
+        .style("background", "#28a745")
+        .style("color", "white")
+        .style("border", "none")
+        .style("border-radius", "4px")
+        .style("cursor", "pointer")
+        .style("font-size", "12px");
 
     myActionHotspotVis = new ActionHotspotVis('mapDiv', crashData, geoData, window.solutionsData);
-
     myActionHotspotVis.setYear(myTimelineVis.selectedYear);
 
     d3.select('.vis-title').text('Action Analysis - Driver, Pedestrian & Cyclist Actions');
@@ -208,56 +425,132 @@ function showActionAnalysis() {
 function showRegularMap() {
     console.log('Switching to Regular Map mode');
 
+    // Set the mode flag
+    isActionAnalysisMode = false;
+
     const mapContainer = d3.select('#mapDiv');
     mapContainer.html('');
 
-    d3.select('#options-panel').style('display', 'block');
+    // Remove the Action Analysis panel completely
+    d3.select("#action-analysis-panel").remove();
 
-    setTimeout(() => {
-        try {
-            console.log('Creating new MapVis instance...');
+    // Remove any ActionHotspotVis controls/side panel that might be created
+    d3.select("#options-panel").remove();
 
-            const mapVisCrashData = preprocessDataForMapVis(crashData);
+    // Show and properly position the original options panel
+    createOriginalOptionsPanel();
 
-            console.log('Available data:', {
-                crashData: mapVisCrashData ? mapVisCrashData.length : 'undefined',
-                geoData: geoData ? 'Yes' : 'No'
-            });
+    // Make sure we have the properly preprocessed crash data
+    const processedCrashData = preprocessDataForMapVis(crashData);
 
-            myMapVis = new MapVis('mapDiv', mapVisCrashData, geoData);
-            console.log('MapVis created successfully');
+    // Recreate the MapVis instance with properly preprocessed data
+    myMapVis = new MapVis('mapDiv', processedCrashData, geoData);
 
-            if (myTimelineVis && myTimelineVis.selectedYear) {
-                myMapVis.setYear(myTimelineVis.selectedYear);
-                console.log('Year set to:', myTimelineVis.selectedYear);
-            }
+    // Set the current year from timeline
+    if (myTimelineVis && myTimelineVis.selectedYear) {
+        myMapVis.setYear(myTimelineVis.selectedYear);
+    }
 
-            let activeFilters = getCurrentFilters();
-            myMapVis.setFilters(activeFilters);
-            console.log('Filters applied:', activeFilters);
+    // Update the title
+    d3.select('.vis-title').text('Toronto Traffic Accidents (2006-2020)');
 
-            if (myMapVis.ensureLabelsVisible) {
-                myMapVis.ensureLabelsVisible();
-            }
+    // Update the toggle button text
+    d3.select('#toggle-action-analysis').text('Show Action Analysis');
 
-            d3.select('.vis-title').text('Toronto Traffic Accidents (2006-2020)');
-
-        } catch (error) {
-            console.error('Error creating MapVis:', error);
-
-            mapContainer.html(`
-                <div style="padding: 40px; text-align: center; color: #666; background: #f8f9fa; border-radius: 8px;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
-                    <h3>Error Loading Regular Map</h3>
-                    <p>${error.message}</p>
-                    <button onclick="showRegularMap()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px;">
-                        Try Again
-                    </button>
-                </div>
-            `);
-        }
-    }, 50);
+    console.log('Regular map and original options panel should now be visible');
 }
+
+function createOriginalOptionsPanel() {
+    // Remove any existing options panel first
+    d3.select("#options-panel").remove();
+
+    // Create the original options panel with severity filters
+    const optionsPanel = d3.select("body")
+        .append("div")
+        .attr("id", "options-panel")
+        .style("position", "absolute")
+        .style("top", "70px")
+        .style("right", "40px")
+        .style("width", "250px")
+        .style("background", "rgba(255, 255, 255, 0.95)")
+        .style("border", "1px solid #ccc")
+        .style("border-radius", "8px")
+        .style("padding", "15px")
+        .style("z-index", "1000")
+        .style("box-shadow", "0 4px 12px rgba(0,0,0,0.15)");
+
+    // Add the original filter controls
+    optionsPanel.append("h3")
+        .text("Filter by Severity")
+        .style("margin-top", "0")
+        .style("color", "#333")
+        .style("border-bottom", "2px solid #007bff")
+        .style("padding-bottom", "10px");
+
+    const severityFilters = [
+        { id: 'filter-fatal', label: 'Fatal', color: '#e23725' },
+        { id: 'filter-major', label: 'Major', color: '#ff7f00' },
+        { id: 'filter-minor', label: 'Minor', color: '#ffd700' },
+        { id: 'filter-minimal', label: 'Minimal', color: '#6c757d' }
+    ];
+
+    severityFilters.forEach(filter => {
+        const filterDiv = optionsPanel.append("div")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("margin-bottom", "8px");
+
+        filterDiv.append("input")
+            .attr("type", "checkbox")
+            .attr("id", filter.id)
+            .attr("checked", true)
+            .style("margin-right", "8px")
+            .on("change", updateFilters);
+
+        filterDiv.append("label")
+            .attr("for", filter.id)
+            .html(`<span style="display: inline-block; width: 12px; height: 12px; background: ${filter.color}; border-radius: 2px; margin-right: 8px;"></span>${filter.label}`)
+            .style("color", "#333")
+            .style("cursor", "pointer");
+    });
+
+    // Add current year display
+    optionsPanel.append("div")
+        .attr("id", "current-year")
+        .style("margin-top", "15px")
+        .style("padding", "10px")
+        .style("background", "#f8f9fa")
+        .style("border-radius", "4px")
+        .style("text-align", "center")
+        .style("font-weight", "bold")
+        .style("color", "#007bff")
+        .text(`Current Year: ${myTimelineVis ? myTimelineVis.selectedYear : '2006'}`);
+
+    // Re-setup the filters
+    setupFilters();
+}
+
+function setupActionAnalysisToggle() {
+    const button = d3.select('#toggle-action-analysis');
+
+    // Position the toggle button further right
+    button.style("position", "absolute")
+        .style("right", "40px")
+        .style("top", "20px")
+        .style("z-index", "1001");
+
+    button.on('click', function() {
+        isActionAnalysisMode = !isActionAnalysisMode;
+        if (isActionAnalysisMode) {
+            showActionAnalysis();
+            button.text('Show Regular Map');
+        } else {
+            showRegularMap();
+            button.text('Show Action Analysis');
+        }
+    });
+}
+
 
 
 function preprocessDataForMapVis(crashData) {
@@ -304,22 +597,6 @@ function preprocessDataForMapVis(crashData) {
     console.log(`Processed ${processedData.length} records for MapVis`);
 
     return processedData;
-}
-
-function setupActionAnalysisToggle() {
-    const button = d3.select('#toggle-action-analysis');
-
-    button.on('click', function() {
-        isActionAnalysisMode = !isActionAnalysisMode;
-
-        if (isActionAnalysisMode) {
-            showActionAnalysis();
-            button.classed('active', true).text('Show Regular Map');
-        } else {
-            showRegularMap();
-            button.classed('active', false).text('Show Action Analysis');
-        }
-    });
 }
 
 function getCurrentFilters() {
@@ -378,7 +655,7 @@ function updateYearFromScroll() {
     let yearRange = myTimelineVis.yearRange;
     let selectedYear = Math.round(yearRange[0] + scrollPercent * (yearRange[1] - yearRange[0]));
 
-    selectedYear = Math.max(yearRange[0], Math.min(yearRange[1], selectedYear));
+    selectedYear =  Math.max(yearRange[0], Math.min(yearRange[1], selectedYear));
 
     if (myTimelineVis.selectedYear !== selectedYear) {
         myTimelineVis.setYear(selectedYear);

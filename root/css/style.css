@@ -4,18 +4,28 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-right: 0;
 }
 
-/* Map Visualization */
+/* Map container styling */
 #mapDiv {
+    width: 829px;
+    height: 609.88px;
     margin-bottom: 10px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 15px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
 }
 
+/* Ensure SVG fills the container */
+#mapDiv svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
 #timelineDiv {
     width: 900px;
     margin: 0 auto;
@@ -52,18 +62,16 @@
 /* Options Panel */
 #options-panel {
     position: absolute;
-    order: 3;
-    left: 959px;
-    top: 60px;
-    width: 219px;
-    height: 580px;
-    background: rgba(255, 255, 255, 0.15) !important;
+    right: 40px;
+    top: 70px;
+    width: 250px;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     padding: 20px;
-    z-index: 100;
+    z-index: 1000;
     backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .options-title {
@@ -140,15 +148,6 @@
     background-color: rgba(128,128,128,0.8);
 }
 
-/* Body styling */
-body {
-    margin: 0;
-    padding: 20px;
-    font-family: 'Overpass', sans-serif;
-    background: linear-gradient(135deg, #e0b92b 0%, #8342bd 50%, #531994 75%, #4b1e7a 100%) fixed;
-    min-height: 100vh;
-}
-
 /* Crash points */
 .crash-point {
     cursor: pointer;
@@ -164,37 +163,29 @@ body {
 }
 
 /* Action Hotspot specific styles */
-.action-hotspot-tooltip {
-    position: absolute;
-    background: rgba(255, 255, 255, 0.95) !important;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 8px;
-    font-size: 12px;
-    pointer-events: none;
-    opacity: 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    max-width: 250px;
-    font-family: Arial, sans-serif;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
+.action-controls {
+    font-family: 'Overpass', sans-serif;
 }
 
-.action-controls select {
-    padding: 4px 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: white;
-    font-size: 12px;
-    margin-right: 10px;
+.show-actions-btn {
+    transition: all 0.3s ease;
 }
 
-.action-controls label {
-    font-size: 12px;
-    font-weight: bold;
-    margin-right: 5px;
-    color: white !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+.show-actions-btn:hover {
+    background: #0056b3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.options-container {
+    transition: all 0.3s ease;
+}
+
+.basic-info {
+    background: #f8f9fa;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
 }
 
 .hotspot-legend {
@@ -231,7 +222,7 @@ body {
 .vis-title {
     font-size: 16px;
     font-weight: bold;
-    fill: white !important;
+    fill: #190505 !important;
     font-family: 'Overpass', sans-serif;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
@@ -243,61 +234,35 @@ body {
     vector-effect: non-scaling-stroke;
 }
 
-.action-cluster:hover {
-    .action-cluster:hover,
-    .individual-point:hover {
-        stroke-width: 3px !important;
-        opacity: 1 !important;
-        cursor: pointer;
-        filter: drop-shadow(0 0 8px rgba(0,0,0,0.3));
-        transform: scale(1.02);
-    }
-
-/* Action cluster colors */
-.action-cluster[data-type="driver"] {
-    fill: #8a2be2 !important;
-}
-
-.action-cluster[data-type="pedestrian"] {
-    fill: #a52a2a !important;
-}
-
-.action-cluster[data-type="cyclist"] {
-    fill: #1e90ff !important;
-}
-
-/* Individual points hover effects */
-.individual-point {
-    cursor: pointer;
-    transition: all 0.3s ease;
-    vector-effect: non-scaling-stroke;
-}
-
+.action-cluster:hover,
 .individual-point:hover {
-    filter: brightness(1.2);
-    transform: scale(1.1);
-    stroke-width: 3px !important;
-    opacity: 1 !important;
-}
-
-.individual-point[fill="#98cef4"]:hover {
-    stroke: #1976d2 !important;
-}
-
-.individual-point[fill="#f67171"]:hover {
-    stroke: #d32f2f !important;
-}
-
-.individual-point[fill="#1eff5e"]:hover {
-    stroke: #388e3c !important;
+    stroke-width: 3px;
+    opacity: 1;
+    cursor: pointer;
+    filter: drop-shadow(0 0 8px rgba(0,0,0,0.3));
+    transform: scale(1.02);
 }
 
 /* Zoom Controls */
 .zoom-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
     font-family: Arial, sans-serif;
 }
 
 .zoom-btn {
+    display: block;
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 5px;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -312,16 +277,27 @@ body {
     transform: scale(0.95);
 }
 
-.zoom-in, .zoom-out, .zoom-reset {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.zoom-reset {
+    font-size: 16px;
 }
 
 /* Ensure map elements are zoomable */
 .road {
     vector-effect: non-scaling-stroke;
     pointer-events: none;
+}
+
+.zoomable-svg {
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+.zoomable-svg:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
 }
 
 /* Stats Panel */
@@ -481,51 +457,31 @@ body {
     border: 1px solid #ccc;
 }
 
-
-
 /* Action Analysis Button */
 .action-analysis-btn {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    right: 40px;
+    top: 20px;
+    z-index: 1001;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
     border-radius: 4px;
-    padding: 8px 16px;
     cursor: pointer;
-    font-size: 14px;
     font-family: 'Overpass', sans-serif;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    color: white !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
+    font-size: 14px;
+    transition: background-color 0.3s;
 }
 
 .action-analysis-btn:hover {
-    background: rgba(255, 255, 255, 0.3) !important;
-    border-color: #adb5bd;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.action-analysis-btn.active {
-    background: #007bff;
-    color: white;
-    border-color: #007bff;
+    background: #0056b3;
 }
 
 /* Loading indicator */
 #loading-indicator {
     font-family: 'Overpass', sans-serif;
     font-weight: bold;
-}
-
-/* Performance optimizations */
-.individual-point {
-    vector-effect: non-scaling-stroke;
 }
 
 /* Animation keyframes */
@@ -600,26 +556,23 @@ body {
 }
 
 /* Modal Styles */
-    /* Ensure solution detail modal appears above everything */
-    .solution-detail-modal {
-        z-index: 10001 !important;
-    }
+.solution-detail-modal {
+    z-index: 10001 !important;
+}
 
-    .detailed-view-modal {
-        z-index: 10000 !important;
-    }
+.detailed-view-modal {
+    z-index: 10000 !important;
+    overflow: auto !important;
+}
 
-    /* Make sure the close button is always clickable */
-    .close-solution-detail {
-        z-index: 10002 !important;
-    }
+.close-solution-detail {
+    z-index: 10002 !important;
+}
 
-    /* Better scrolling for solution details */
-    .solution-detail-modal > div {
-        max-height: 85vh !important;
-        overflow-y: auto !important;
-    }
-
+.solution-detail-modal > div {
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+}
 
 .view-full-analysis-btn:hover {
     background: #45a049 !important;
@@ -636,39 +589,6 @@ body {
     transform: translateY(-2px) !important;
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15) !important;
 }
-    /* Force scrollbar to always be visible */
-    .detailed-view-modal {
-        overflow: auto !important;
-    }
-
-    /* Ensure the modal content container allows scrolling */
-    .detailed-view-modal > div {
-        overflow: hidden !important;
-    }
-
-    /* Make sure the content area is scrollable */
-    .detailed-view-modal .content-area {
-        overflow-y: auto !important;
-    }
-
-    /* Custom scrollbar styling */
-    .detailed-view-modal ::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .detailed-view-modal ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 3px;
-    }
-
-    .detailed-view-modal ::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 3px;
-    }
-
-    .detailed-view-modal ::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
 
 /* Timeline elements */
 .timeline-track {
@@ -676,7 +596,7 @@ body {
 }
 
 .year-label {
-    fill: white !important;
+    fill: #190505 !important;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
@@ -700,7 +620,15 @@ body {
         border-right: none !important;
         border-bottom: 1px solid #eee;
     }
-}
+
+    #options-panel {
+        right: 20px;
+        width: 200px;
+    }
+
+    #mapDiv {
+        margin-right: 250px;
+    }
 }
 
 .detailed-view-modal > div {
@@ -729,52 +657,51 @@ body {
     padding-bottom: 8px;
 }
 
-.zoom-controls {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    z-index: 1000;
-}
-
-.zoom-btn {
-    display: block;
-    width: 40px;
-    height: 40px;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-bottom: 5px;
-    transition: all 0.2s ease;
-}
-
-.zoom-btn:hover {
-    background: #f8f9fa;
-    border-color: #999;
-    transform: scale(1.05);
-}
-
-.zoom-reset {
-    font-size: 16px;
-}
-
-.zoomable-svg {
-    cursor: move;
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
-}
-
-.zoomable-svg:active {
-    cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-}
-
 /* Make sure parent containers are positioned relatively */
 #action-hotspot-map, #regular-map {
     position: relative;
 }
 
+/* Action Analysis Panel */
+#action-analysis-panel {
+    position: absolute;
+    top: 70px;
+    right: 40px;
+    width: 280px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    padding: 20px;
+    z-index: 1000;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.toggle-panel-btn {
+    transition: all 0.3s ease;
+}
+
+.toggle-panel-btn:hover {
+    background: #5a6268 !important;
+    transform: translateY(-1px);
+}
+
+.current-settings {
+    font-size: 12px;
+}
+
+.controls-container select {
+    transition: all 0.3s ease;
+}
+
+.controls-container select:hover {
+    border-color: #007bff !important;
+}
+
+.controls-container select:focus {
+    outline: none;
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}

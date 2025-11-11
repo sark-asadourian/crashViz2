@@ -35,7 +35,6 @@ class ActionHotspotVis {
         vis.precomputeData();
 
         vis.initVis();
-        vis.createToggleButton();
 
         vis.wrangleData();
     }
@@ -231,7 +230,6 @@ class ActionHotspotVis {
 
         vis.createYearDisplay();
         vis.createClickInstruction();
-        vis.createToggleButton();
 
         vis.setupZoom();
 
@@ -410,127 +408,93 @@ class ActionHotspotVis {
             .text("TORONTO");
     }
 
-    createToggleButton() {
-        let vis = this;
-
-        vis.toggleButton = d3.select("#" + vis.parentElement)
-            .append("button")
-            .attr("class", "toggle-empty-map-btn")
-            .text("Show Empty Map")
-            .style("position", "absolute")
-            .style("top", "calc(20px + 180px)")
-            .style("right", "20px")
-            .style("z-index", "10")
-            .style("background", "#fff")
-            .style("border", "1px solid #ccc")
-            .style("border-radius", "4px")
-            .style("padding", "8px 16px")
-            .style("cursor", "pointer")
-            .style("font-size", "14px")
-            .style("font-weight", "bold")
-            .style("box-shadow", "0 2px 4px rgba(0,0,0,0.1)")
-            .on("click", function () {
-                vis.toggleEmptyMap();
-            });
-    }
-
-    toggleEmptyMap() {
-        let vis = this;
-
-        if (vis.isEmptyMapMode) {
-            vis.showActionHotspots();
-        } else {
-            vis.showEmptyMap();
-        }
-    }
-
-    showEmptyMap() {
-        let vis = this;
-
-        // Remove all action clusters and individual points
-        vis.svg.selectAll(".action-cluster, .individual-point")
-            .transition()
-            .duration(300)
-            .attr("opacity", 0)
-            .attr("r", 0)
-            .remove();
-
-        // Hide controls but keep them positioned
-        vis.controls.style("opacity", "0.7"); // Make semi-transparent instead of hiding
-
-        // Update title
-        vis.updateTitle("Empty Map View");
-
-        // Update button text
-        vis.toggleButton.text("Show Action Hotspots");
-
-        // Update mode
-        vis.isEmptyMapMode = true;
-    }
-
-    showActionHotspots() {
-        let vis = this;
-
-        // Show controls with full opacity
-        vis.controls.style("opacity", "1");
-
-        // Update title
-        vis.updateTitle(`${vis.selectedActionType} Action Hotspots (${vis.selectedYear}): ${vis.selectedAction === 'All' ? 'All Actions' : vis.selectedAction}`);
-
-        // Update button text
-        vis.toggleButton.text("Show Empty Map");
-
-        // Update mode
-        vis.isEmptyMapMode = false;
-
-        // Reload the data
-        vis.wrangleData();
-    }
     createControls() {
         let vis = this;
 
         console.log('Creating controls for parent element:', vis.parentElement);
 
-        // Create controls container as a dialogue box above the map
-        vis.controls = d3.select("#" + vis.parentElement)
+        // Remove any existing options panel first
+        d3.select("#options-panel").remove();
+
+        // Create side panel container (replacing the options panel)
+        vis.sidePanel = d3.select("body")
             .append("div")
-            .attr("class", "action-controls")
-            .style("width", "100%")
+            .attr("id", "options-panel")
+            .style("position", "absolute")
+            .style("top", "20px")
+            .style("right", "20px")
+            .style("width", "300px")
             .style("background", "rgba(255, 255, 255, 0.98)")
             .style("border", "1px solid #ccc")
             .style("border-radius", "8px")
             .style("padding", "20px")
+            .style("z-index", "1000")
+            .style("box-shadow", "0 4px 12px rgba(0,0,0,0.15)")
+            .style("font-family", "Overpass, sans-serif");
+
+        // Header with title and toggle button
+        const header = vis.sidePanel.append("div")
+            .style("display", "flex")
+            .style("justify-content", "space-between")
+            .style("align-items", "center")
             .style("margin-bottom", "20px")
-            .style("box-sizing", "border-box")
-            .style("display", "grid")
-            .style("grid-template-columns", "1fr 1fr 1fr")
-            .style("gap", "20px")
-            .style("align-items", "end")
-            .style("box-shadow", "0 2px 10px rgba(0,0,0,0.1)");
+            .style("padding-bottom", "15px")
+            .style("border-bottom", "2px solid #007bff");
 
-        console.log('Controls container created:', vis.controls.node());
+        header.append("h3")
+            .text("Action Analysis")
+            .style("margin", "0")
+            .style("color", "#333")
+            .style("font-size", "18px");
 
-        // Display mode selector - Column 1
-        const displayModeCol = vis.controls.append("div")
+
+        // Current settings display
+        vis.sidePanel.append("div")
+            .attr("class", "current-settings")
+            .style("background", "#f8f9fa")
+            .style("padding", "12px")
+            .style("border-radius", "6px")
+            .style("margin-bottom", "20px")
+            .style("border", "1px solid #e9ecef")
+            .style("font-size", "13px")
+            .html(`
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div><strong>Year:</strong> ${vis.selectedYear}</div>
+                <div><strong>Mode:</strong> ${vis.displayMode}</div>
+                <div><strong>Type:</strong> ${vis.selectedActionType}</div>
+                <div><strong>Action:</strong> ${vis.selectedAction === 'All' ? 'All Actions' : vis.selectedAction}</div>
+            </div>
+        `);
+
+        // Controls container
+        const controlsContainer = vis.sidePanel.append("div")
+            .attr("class", "controls-container")
+            .style("display", "flex")
+            .style("flex-direction", "column")
+            .style("gap", "15px");
+
+        // Display mode selector
+        const displayModeGroup = controlsContainer.append("div")
             .style("display", "flex")
             .style("flex-direction", "column");
 
-        displayModeCol.append("label")
+        displayModeGroup.append("label")
             .text("Display Mode")
             .style("font-weight", "bold")
-            .style("margin-bottom", "8px")
+            .style("margin-bottom", "6px")
             .style("font-size", "14px")
             .style("color", "#333");
 
-        vis.displayModeSelect = displayModeCol.append("select")
+        vis.displayModeSelect = displayModeGroup.append("select")
             .style("width", "100%")
-            .style("padding", "10px")
+            .style("padding", "8px")
             .style("border", "1px solid #ddd")
-            .style("border-radius", "6px")
-            .style("font-size", "14px")
+            .style("border-radius", "4px")
+            .style("font-size", "13px")
             .style("background", "#fff")
             .on("change", function () {
                 vis.displayMode = this.value;
+                vis.updateCurrentSettings();
                 vis.wrangleData();
             });
 
@@ -541,28 +505,29 @@ class ActionHotspotVis {
             .attr("value", d => d)
             .text(d => d === 'cluster' ? 'Show Clusters' : 'Show Individual Accidents');
 
-        // Action type selector - Column 2
-        const actionTypeCol = vis.controls.append("div")
+        // Action type selector
+        const actionTypeGroup = controlsContainer.append("div")
             .style("display", "flex")
             .style("flex-direction", "column");
 
-        actionTypeCol.append("label")
+        actionTypeGroup.append("label")
             .text("Action Type")
             .style("font-weight", "bold")
-            .style("margin-bottom", "8px")
+            .style("margin-bottom", "6px")
             .style("font-size", "14px")
             .style("color", "#333");
 
-        vis.actionTypeSelect = actionTypeCol.append("select")
+        vis.actionTypeSelect = actionTypeGroup.append("select")
             .style("width", "100%")
-            .style("padding", "10px")
+            .style("padding", "8px")
             .style("border", "1px solid #ddd")
-            .style("border-radius", "6px")
-            .style("font-size", "14px")
+            .style("border-radius", "4px")
+            .style("font-size", "13px")
             .style("background", "#fff")
             .on("change", function () {
                 vis.selectedActionType = this.value;
                 vis.updateActionOptions();
+                vis.updateCurrentSettings();
                 vis.wrangleData();
             });
 
@@ -574,51 +539,114 @@ class ActionHotspotVis {
             .text(d => d + " Actions");
 
         // Specific action selector
-        const specificActionCol = vis.controls.append("div")
+        const specificActionGroup = controlsContainer.append("div")
             .style("display", "flex")
             .style("flex-direction", "column");
 
-        specificActionCol.append("label")
+        specificActionGroup.append("label")
             .text("Specific Action")
             .style("font-weight", "bold")
-            .style("margin-bottom", "8px")
+            .style("margin-bottom", "6px")
             .style("font-size", "14px")
             .style("color", "#333");
 
-        vis.actionSelect = specificActionCol.append("select")
+        vis.actionSelect = specificActionGroup.append("select")
             .style("width", "100%")
-            .style("padding", "10px")
+            .style("padding", "8px")
             .style("border", "1px solid #ddd")
-            .style("border-radius", "6px")
-            .style("font-size", "14px")
+            .style("border-radius", "4px")
+            .style("font-size", "13px")
             .style("background", "#fff")
             .on("change", function () {
                 vis.selectedAction = this.value;
+                vis.updateCurrentSettings();
                 vis.wrangleData();
             });
 
         // Update action options based on type
         vis.updateActionOptions();
 
-        // Add legend and improvements in a new row
-        const bottomRow = vis.controls.append("div")
-            .style("grid-column", "1 / -1")
-            .style("display", "flex")
-            .style("justify-content", "space-between")
-            .style("align-items", "center")
+        // Legend
+        const legendSection = controlsContainer.append("div")
+            .style("margin-top", "10px")
+            .style("padding-top", "15px")
+            .style("border-top", "1px solid #eee");
+
+        legendSection.append("div")
+            .style("font-weight", "bold")
+            .style("margin-bottom", "10px")
+            .style("font-size", "14px")
+            .style("color", "#333")
+            .text("Action Types:");
+
+        vis.createLegend(legendSection);
+
+        // Improvements toggle
+        const improvementsSection = controlsContainer.append("div")
             .style("margin-top", "15px")
-            .style("padding-top", "20px")
-            .style("border-top", "2px solid #eee");
+            .style("padding-top", "15px")
+            .style("border-top", "1px solid #eee");
 
-        console.log('Bottom row created:', bottomRow.node());
+        vis.createImprovementsToggle(improvementsSection);
 
-        // Legend on the left
-        vis.createLegend(bottomRow);
+        console.log('Side panel controls created successfully');
+    }
 
-        // Improvements toggle on the right
-        vis.createImprovementsToggle(bottomRow);
+// Add method to update current settings display
+    updateCurrentSettings() {
+        let vis = this;
 
-        console.log('All controls created successfully');
+        const settingsDiv = vis.sidePanel.select(".current-settings");
+        if (!settingsDiv.empty()) {
+            settingsDiv.html(`
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div><strong>Year:</strong> ${vis.selectedYear}</div>
+                <div><strong>Mode:</strong> ${vis.displayMode}</div>
+                <div><strong>Type:</strong> ${vis.selectedActionType}</div>
+                <div><strong>Action:</strong> ${vis.selectedAction === 'All' ? 'All Actions' : vis.selectedAction}</div>
+            </div>
+        `);
+        }
+    }
+
+// Add method to toggle side panel visibility
+    toggleSidePanel() {
+        let vis = this;
+
+        const isVisible = vis.sidePanel.style("display") !== "none";
+
+        if (isVisible) {
+            // Hide panel
+            vis.sidePanel.style("display", "none");
+            vis.toggleButton.text("Show Actions");
+        } else {
+            // Show panel
+            vis.sidePanel.style("display", "block");
+            vis.toggleButton.text("Hide Actions");
+        }
+    }
+
+// Add this new method to toggle the options visibility
+    toggleActionOptions() {
+        let vis = this;
+
+        const optionsContainer = vis.controls.select(".options-container");
+        const showActionsBtn = vis.controls.select(".show-actions-btn");
+        const basicInfo = vis.controls.select(".basic-info");
+
+        const isVisible = optionsContainer.style("display") !== "none";
+
+        if (isVisible) {
+            // Hide options
+            optionsContainer.style("display", "none");
+            showActionsBtn.text("Show Actions");
+            basicInfo.text(`Year: ${vis.selectedYear} | Mode: ${vis.displayMode}`);
+        } else {
+            // Show options
+            optionsContainer.style("display", "block");
+            showActionsBtn.text("Hide Actions");
+            basicInfo.text(`Year: ${vis.selectedYear} | Mode: ${vis.displayMode} | Type: ${vis.selectedActionType}`);
+        }
     }
 
     updateActionOptions() {
@@ -652,16 +680,10 @@ class ActionHotspotVis {
     createLegend(parentElement) {
         let vis = this;
 
-        vis.legend = parentElement.append("div")
-            .attr("class", "hotspot-legend")
+        const legendContainer = parentElement.append("div")
             .style("display", "flex")
-            .style("align-items", "center")
-            .style("gap", "15px");
-
-        vis.legend.append("div")
-            .style("font-weight", "bold")
-            .style("font-size", "14px")
-            .text("Action Types:");
+            .style("flex-direction", "column")
+            .style("gap", "8px");
 
         let legendData = [
             {type: "Driver", color: vis.actionTypeColors.Driver},
@@ -669,14 +691,14 @@ class ActionHotspotVis {
             {type: "Cyclist", color: vis.actionTypeColors.Cyclist}
         ];
 
-        let legendItems = vis.legend.selectAll(".legend-item")
+        let legendItems = legendContainer.selectAll(".legend-item")
             .data(legendData)
             .enter()
             .append("div")
             .attr("class", "legend-item")
             .style("display", "flex")
             .style("align-items", "center")
-            .style("gap", "5px");
+            .style("gap", "8px");
 
         legendItems.append("div")
             .style("width", "16px")
@@ -686,67 +708,58 @@ class ActionHotspotVis {
             .style("border-radius", "3px");
 
         legendItems.append("div")
-            .style("font-size", "12px")
+            .style("font-size", "13px")
             .style("font-weight", "bold")
+            .style("color", "#333")
             .text(d => d.type);
     }
-
     createImprovementsToggle(parentElement) {
         let vis = this;
 
-        console.log('createImprovementsToggle called with parentElement:', parentElement);
-        console.log('parentElement node:', parentElement.node());
-
-        if (!parentElement || !parentElement.node()) {
-            console.error('Invalid parentElement passed to createImprovementsToggle');
-            return;
-        }
-
-        vis.improvementsToggle = parentElement.append("div")
-            .attr("class", "improvements-toggle")
+        const toggleContainer = parentElement.append("div")
             .style("display", "flex")
-            .style("align-items", "center")
+            .style("flex-direction", "column")
             .style("gap", "10px");
 
-        vis.improvementsToggle.append("label")
-            .text("Show Improvement Suggestions")
+        toggleContainer.append("div")
             .style("font-weight", "bold")
             .style("font-size", "14px")
-            .style("margin-right", "10px");
+            .style("color", "#333")
+            .style("margin-bottom", "5px")
+            .text("Improvement Suggestions");
 
-        vis.improvementsButton = vis.improvementsToggle.append("button")
+        vis.improvementsButton = toggleContainer.append("button")
             .text("Show Suggestions")
-            .style("padding", "8px 16px")
+            .style("padding", "10px")
             .style("background", "#4CAF50")
             .style("color", "white")
             .style("border", "none")
             .style("border-radius", "4px")
             .style("cursor", "pointer")
-            .style("font-size", "14px")
+            .style("font-size", "13px")
             .style("font-weight", "bold")
+            .style("width", "100%")
             .on("click", function() {
                 vis.toggleImprovementSuggestions();
             });
 
-        // Create improvements panel - position on the map
-        vis.improvementsPanel = d3.select("#" + vis.parentElement)
+        // Create improvements panel - position it below the side panel
+        vis.improvementsPanel = d3.select("body")
             .append("div")
             .attr("class", "improvements-panel")
             .style("position", "absolute")
-            .style("top", "calc(20px + 200px)")
-            .style("left", "20px")
+            .style("top", "400px") // Position below the side panel
+            .style("right", "20px")
+            .style("width", "300px")
             .style("background", "rgba(255, 255, 255, 0.98)")
             .style("border", "2px solid #4CAF50")
             .style("border-radius", "8px")
             .style("padding", "15px")
-            .style("max-width", "350px")
             .style("max-height", "400px")
             .style("overflow-y", "auto")
-            .style("z-index", "10")
+            .style("z-index", "1001")
             .style("display", "none")
             .style("box-shadow", "0 4px 12px rgba(0,0,0,0.15)");
-
-        console.log('Improvements toggle created successfully');
     }
     toggleImprovementSuggestions() {
         let vis = this;
@@ -1297,7 +1310,7 @@ class ActionHotspotVis {
         let vis = this;
 
         vis.individualPoints = vis.zoomableLayer.selectAll(".individual-point")
-            .data(vis.individualData)
+            .data(vis.individualData, d => d.lat + '_' + d.lng)
             .enter()
             .append("circle")
             .attr("class", "individual-point")
@@ -1332,6 +1345,11 @@ class ActionHotspotVis {
                     .attr("stroke-width", 3)
                     .attr("opacity", 1);
             });
+
+        vis.zoomableLayer.selectAll(".individual-point")
+            .data(vis.individualData, d => d.lat + '_' + d.lng)
+            .exit()
+            .remove();
     }
 
     showClusters() {

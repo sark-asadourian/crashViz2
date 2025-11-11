@@ -71,7 +71,7 @@ class TimelineVis {
             .attr("text-anchor", "middle")
             .attr("font-family", "Overpass, sans-serif")
             .attr("font-size", "12px")
-            .attr("fill", d => d === vis.selectedYear ? "#ffeb3b" : "#ccc")
+            .attr("fill", d => d === vis.selectedYear ? "#190505" : "#0800ff")
             .attr("font-weight", d => d === vis.selectedYear ? "bold" : "normal")
             .style("pointer-events", "none")
             .text(d => d);
@@ -196,7 +196,7 @@ class TimelineVis {
     _updateYearLabels() {
         let vis = this;
         vis.yearLabels
-            .attr("fill", d => d === vis.selectedYear ? "#ffeb3b" : "#ccc")
+            .attr("fill", d => d === vis.selectedYear ? "#0800ff" : "#190505")
             .attr("font-weight", d => d === vis.selectedYear ? "bold" : "normal");
     }
 
