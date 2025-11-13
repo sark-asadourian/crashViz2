@@ -3,7 +3,6 @@
 * * * * * * * * * * * * * * */
 
 class MapVis {
-
     constructor(parentElement, crashData, geoData) {
         let vis = this;
         vis.parentElement = parentElement;
@@ -20,7 +19,7 @@ class MapVis {
             'Minimal': 'rgba(128,128,128,0.8)'
         };
 
-        vis.initVis()
+        vis.initVis();
     }
 
     initVis() {
@@ -37,6 +36,9 @@ class MapVis {
             .attr("height", vis.height + vis.margin.top + vis.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + vis.margin.left + "," + vis.margin.top + ")");
+
+        // Create action analysis button
+        vis.createActionAnalysisButton();
 
         // Calculate bounds from data or use default Toronto bounds
         if (vis.crashData && vis.crashData.length > 0) {
@@ -82,7 +84,7 @@ class MapVis {
         vis.latScale = vis.yScale;
         vis.lngScale = vis.xScale;
 
-        // Draw map background 
+        // Draw map background
         vis.mapBackground = vis.svg.append("rect")
             .attr("width", vis.width)
             .attr("height", vis.height)
@@ -90,16 +92,16 @@ class MapVis {
             .attr("rx", 12);
 
         // Create projection centered on Toronto (always create it for labels)
-            let centerLng = (vis.lngMin + vis.lngMax) / 2;
-            let centerLat = (vis.latMin + vis.latMax) / 2;
-            
-            vis.projection = d3.geoMercator()
-                .center([centerLng, centerLat])
-                .scale(vis.width * 100)
-                .translate([vis.width / 2, vis.height / 2]);
+        let centerLng = (vis.lngMin + vis.lngMax) / 2;
+        let centerLat = (vis.latMin + vis.latMax) / 2;
 
-            vis.path = d3.geoPath()
-                .projection(vis.projection);
+        vis.projection = d3.geoMercator()
+            .center([centerLng, centerLat])
+            .scale(vis.width * 100)
+            .translate([vis.width / 2, vis.height / 2]);
+
+        vis.path = d3.geoPath()
+            .projection(vis.projection);
 
         // Draw GeoJSON if available
         if (vis.geoData && vis.geoData.features) {
@@ -117,12 +119,12 @@ class MapVis {
 
         // Define neighborhood labels data
         vis.neighborhoods = [
-            { name: "Downtown Toronto", lat: 43.6537, lng: -79.3819 },
-            { name: "Etobicoke", lat: 43.6439, lng: -79.5643 },
-            { name: "North York", lat: 43.7722, lng: -79.4140 },
-            { name: "East York", lat: 43.6922, lng: -79.3291 },
-            { name: "York", lat: 43.6904, lng: -79.4786 },
-            { name: "Scarborough", lat: 43.7728, lng: -79.2582 }
+            {name: "Downtown Toronto", lat: 43.6537, lng: -79.3819},
+            {name: "Etobicoke", lat: 43.6439, lng: -79.5643},
+            {name: "North York", lat: 43.7722, lng: -79.4140},
+            {name: "East York", lat: 43.6922, lng: -79.3291},
+            {name: "York", lat: 43.6904, lng: -79.4786},
+            {name: "Scarborough", lat: 43.7728, lng: -79.2582}
         ];
 
         // Draw neighborhood labels
@@ -147,28 +149,28 @@ class MapVis {
         if (vis.projection) {
             vis.initialScale = vis.projection.scale();
             vis.initialCenter = vis.projection.center();
-            
+
             // Helper function to update all map elements
-            vis.updateMapElements = function() {
+            vis.updateMapElements = function () {
                 // Update the path generator
                 vis.path = d3.geoPath().projection(vis.projection);
-                
+
                 // Update roads
                 vis.svg.selectAll(".road").attr("d", vis.path);
-                
+
                 // Update crash points using projection coordinates
                 // Re-select crash points to ensure we have the current selection
                 let crashPoints = vis.svg.selectAll(".crash-point");
                 if (!crashPoints.empty()) {
                     crashPoints
-                        .attr("cx", function(d) {
+                        .attr("cx", function (d) {
                             if (d && d.lng !== undefined && d.lat !== undefined) {
                                 let coords = vis.projection([d.lng, d.lat]);
                                 return coords ? coords[0] : 0;
                             }
                             return 0;
                         })
-                        .attr("cy", function(d) {
+                        .attr("cy", function (d) {
                             if (d && d.lng !== undefined && d.lat !== undefined) {
                                 let coords = vis.projection([d.lng, d.lat]);
                                 return coords ? coords[1] : 0;
@@ -176,7 +178,7 @@ class MapVis {
                             return 0;
                         });
                 }
-                
+
                 // Update neighborhood labels
                 let labels = vis.svg.selectAll(".neighborhood-label");
                 if (!labels.empty()) {
@@ -184,16 +186,16 @@ class MapVis {
                     let currentScale = vis.projection.scale();
                     let scaleFactor = currentScale / vis.initialScale;
                     let fontSize = Math.max(10, Math.min(16, 12 * scaleFactor));
-                    
+
                     labels
-                        .attr("x", function(d) {
+                        .attr("x", function (d) {
                             if (d && d.lng !== undefined && d.lat !== undefined) {
                                 let coords = vis.projection([d.lng, d.lat]);
                                 return coords ? coords[0] : 0;
                             }
                             return 0;
                         })
-                        .attr("y", function(d) {
+                        .attr("y", function (d) {
                             if (d && d.lng !== undefined && d.lat !== undefined) {
                                 let coords = vis.projection([d.lng, d.lat]);
                                 return coords ? coords[1] : 0;
@@ -201,21 +203,21 @@ class MapVis {
                             return 0;
                         })
                         .attr("font-size", fontSize + "px");
-                    
+
                     // Move labels to the front (on top of crash points)
-                    labels.each(function() {
+                    labels.each(function () {
                         this.parentNode.appendChild(this);
                     });
                 }
             };
-            
+
             // Store initial state for panning
             let initialCenter, startPoint, isDragging = false;
-            
+
             // Set up zoom behavior (handles scroll zoom and drag pan)
             vis.zoom = d3.zoom()
                 .scaleExtent([0.5, 10]) // Allow zoom from 0.5x to 10x
-                .on("start", function(event) {
+                .on("start", function (event) {
                     // Check if this is a drag (mousedown) or zoom (wheel)
                     if (event.sourceEvent && event.sourceEvent.type === "mousedown") {
                         isDragging = true;
@@ -227,10 +229,10 @@ class MapVis {
                         isDragging = false;
                     }
                 })
-                .on("zoom", function(event) {
+                .on("zoom", function (event) {
                     // Always update projection scale based on zoom transform
                     vis.projection.scale(event.transform.k * vis.initialScale);
-                    
+
                     // Handle panning during drag
                     if (isDragging && event.sourceEvent && startPoint) {
                         // Get the current point under the mouse in geographic coordinates
@@ -239,7 +241,7 @@ class MapVis {
                             // Calculate the geographic delta
                             let deltaLng = startPoint[0] - currentPoint[0];
                             let deltaLat = startPoint[1] - currentPoint[1];
-                            
+
                             // Update the projection center
                             vis.projection.center([
                                 initialCenter[0] + deltaLng,
@@ -247,19 +249,61 @@ class MapVis {
                             ]);
                         }
                     }
-                    
+
                     // Update all map elements
                     vis.updateMapElements();
                 })
-                .on("end", function(event) {
+                .on("end", function (event) {
                     isDragging = false;
                 });
-            
+
             // Apply zoom behavior to the SVG (handles both scroll zoom and drag pan)
             vis.svg.call(vis.zoom);
         }
-        
+
         vis.wrangleData();
+    }
+
+    // In MapVis class - this should already exist
+    createActionAnalysisButton() {
+        let vis = this;
+
+        // Remove any existing button first
+        d3.select("#" + vis.parentElement).selectAll(".action-analysis-btn").remove();
+
+        // Create the action analysis button
+        vis.actionButton = d3.select("#" + vis.parentElement)
+            .append("button")
+            .attr("class", "action-analysis-btn")
+            .text("Show Action Analysis")
+            .style("position", "absolute")
+            .style("top", "10px")
+            .style("right", "320px") // Position it appropriately
+            .style("z-index", "1000")
+            .style("padding", "12px 20px")
+            .style("background", "linear-gradient(135deg, #667eea, #764ba2)")
+            .style("color", "white")
+            .style("border", "none")
+            .style("border-radius", "8px")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .style("cursor", "pointer")
+            .style("box-shadow", "0 4px 12px rgba(0,0,0,0.15)")
+            .style("transition", "all 0.3s ease")
+            .style("font-family", "Overpass, sans-serif")
+            .on("mouseover", function () {
+                d3.select(this)
+                    .style("transform", "translateY(-2px)")
+                    .style("box-shadow", "0 6px 16px rgba(0,0,0,0.2)");
+            })
+            .on("mouseout", function () {
+                d3.select(this)
+                    .style("transform", "translateY(0)")
+                    .style("box-shadow", "0 4px 12px rgba(0,0,0,0.15)");
+            })
+            .on("click", function () {
+                vis.switchToActionAnalysis();
+            });
     }
 
     wrangleData() {
@@ -271,7 +315,7 @@ class MapVis {
             let year = +d.Year || +d['Year of collision'] || 0;
             let injury = (d.Injury || '').trim();
             let classification = (d['Accident Classification'] || '').trim();
-            
+
             // Map injury/classification to severity
             let severity = 'Minimal';
             if (injury === 'Fatal' || classification === 'Fatal') {
@@ -286,16 +330,16 @@ class MapVis {
                 severity = 'Minimal';
             }
 
-            return year === vis.selectedYear && 
-                   vis.activeFilters.includes(severity) &&
-                   d.LATITUDE && 
-                   d.LONGITUDE &&
-                   !isNaN(+d.LATITUDE) && 
-                   !isNaN(+d.LONGITUDE);
+            return year === vis.selectedYear &&
+                vis.activeFilters.includes(severity) &&
+                d.LATITUDE &&
+                d.LONGITUDE &&
+                !isNaN(+d.LATITUDE) &&
+                !isNaN(+d.LONGITUDE);
         }).map(d => {
             let injury = (d.Injury || '').trim();
             let classification = (d['Accident Classification'] || '').trim();
-            
+
             // Map to severity
             let severity = 'Minimal';
             if (injury === 'Fatal' || classification === 'Fatal') {
@@ -310,21 +354,26 @@ class MapVis {
                 severity = 'Minimal';
             }
 
+            // Use projection coordinates if available, otherwise use linear scales
+            let projectedCoords = vis.projection ? vis.projection([+d.LONGITUDE, +d.LATITUDE]) : [vis.xScale(+d.LONGITUDE), vis.yScale(+d.LATITUDE)];
+
             return {
                 lat: +d.LATITUDE,
                 lng: +d.LONGITUDE,
                 severity: severity,
-                x: vis.xScale(+d.LONGITUDE),
-                y: vis.yScale(+d.LATITUDE)
+                x: projectedCoords[0],
+                y: projectedCoords[1],
+                projectedX: projectedCoords[0], // Store projected coordinates separately
+                projectedY: projectedCoords[1]
             };
         });
 
         // Group by location to cluster overlapping points (within 5px)
         let clusterMap = {};
         vis.displayData.forEach(d => {
-            // Round to nearest 5 pixels for clustering
-            let roundedX = Math.round(d.x / 5) * 5;
-            let roundedY = Math.round(d.y / 5) * 5;
+            // Use projected coordinates for clustering
+            let roundedX = Math.round(d.projectedX / 5) * 5;
+            let roundedY = Math.round(d.projectedY / 5) * 5;
             let key = roundedX + '_' + roundedY;
             if (!clusterMap[key]) {
                 clusterMap[key] = [];
@@ -342,9 +391,9 @@ class MapVis {
                 'Minimal': 0
             };
             cluster.forEach(d => severityCounts[d.severity]++);
-            
+
             // Determine dominant severity
-            let dominantSeverity = Object.keys(severityCounts).reduce((a, b) => 
+            let dominantSeverity = Object.keys(severityCounts).reduce((a, b) =>
                 severityCounts[a] > severityCounts[b] ? a : b
             );
 
@@ -352,8 +401,8 @@ class MapVis {
             let size = Math.min(61, Math.max(3, 3 + cluster.length * 3));
 
             return {
-                x: basePoint.x,
-                y: basePoint.y,
+                x: basePoint.projectedX, // Use projected X
+                y: basePoint.projectedY, // Use projected Y
                 lat: basePoint.lat,
                 lng: basePoint.lng,
                 severity: dominantSeverity,
@@ -376,28 +425,12 @@ class MapVis {
         vis.crashPoints.exit()
             .remove();
 
-        // Helper function to get x coordinate (use projection if available, otherwise use linear scale)
-        let getX = function(d) {
-            if (vis.projection) {
-                return vis.projection([d.lng, d.lat])[0];
-            }
-            return d.x;
-        };
-        
-        // Helper function to get y coordinate (use projection if available, otherwise use linear scale)
-        let getY = function(d) {
-            if (vis.projection) {
-                return vis.projection([d.lng, d.lat])[1];
-            }
-            return d.y;
-        };
-
         // Enter
         vis.enter = vis.crashPoints.enter()
             .append("circle")
             .attr("class", "crash-point")
-            .attr("cx", getX)
-            .attr("cy", getY)
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
             .attr("r", 0)
             .attr("opacity", 0)
             .attr("fill", d => vis.severityColors[d.severity])
@@ -408,15 +441,15 @@ class MapVis {
         vis.merge = vis.enter.merge(vis.crashPoints);
 
         vis.merge
-            .attr("cx", getX)
-            .attr("cy", getY)
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
             .attr("r", d => d.size / 2)
             .attr("opacity", 0.8)
             .attr("fill", d => vis.severityColors[d.severity]);
-        
+
         // Move labels to the front (on top of crash points)
         vis.svg.selectAll(".neighborhood-label")
-            .each(function() {
+            .each(function () {
                 this.parentNode.appendChild(this);
             });
     }
@@ -432,5 +465,68 @@ class MapVis {
         vis.activeFilters = filters;
         vis.wrangleData();
     }
-}
 
+    switchToActionAnalysis() {
+        let vis = this;
+        console.log('Switching to Action Analysis mode');
+
+        // Hide the regular map visualization but keep the container
+        d3.select("#" + vis.parentElement).select("svg").style("display", "none");
+
+        // Hide the action analysis button
+        d3.select(".action-analysis-btn").style("display", "none");
+
+        // Remove any existing action hotspot visualization first
+        d3.select("#" + vis.parentElement).selectAll(".action-hotspot-svg").remove();
+
+        // Create a new SVG for action analysis in the SAME container
+        vis.actionSvg = d3.select("#" + vis.parentElement)
+            .append("svg")
+            .attr("class", "action-hotspot-svg")
+            .attr("width", vis.width + vis.margin.left + vis.margin.right)
+            .attr("height", vis.height + vis.margin.top + vis.margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + vis.margin.left + "," + vis.margin.top + ")");
+
+        // Initialize ActionHotspotVis in the same container
+        if (!window.myActionHotspotVis) {
+            console.log('Creating new ActionHotspotVis instance');
+            window.myActionHotspotVis = new ActionHotspotVis(vis.parentElement, vis.crashData, vis.geoData);
+        } else {
+            // Update the existing instance with current data and position
+            window.myActionHotspotVis.parentElement = vis.parentElement;
+            window.myActionHotspotVis.crashData = vis.crashData;
+            window.myActionHotspotVis.geoData = vis.geoData;
+
+            // Re-use the same projection parameters to maintain position
+            window.myActionHotspotVis.projection = vis.projection;
+            window.myActionHotspotVis.initialScale = vis.initialScale;
+            window.myActionHotspotVis.initialCenter = vis.initialCenter;
+
+            // Re-initialize the visualization
+            window.myActionHotspotVis.initVis();
+        }
+
+        // Make sure the back button is created
+        window.myActionHotspotVis.createBackButton();
+
+        if (window.myTimelineVis) {
+            console.log('Reconnecting timeline to ActionHotspotVis only');
+
+            window.myTimelineVis.onYearChange = function (year) {
+                console.log('Timeline -> ActionHotspotVis ONLY:', year);
+                if (window.myActionHotspotVis) {
+                    console.log('Setting ActionHotspotVis year to:', year);
+                    window.myActionHotspotVis.setYear(year);
+                }
+            };
+
+            // Force update to current timeline year
+            const currentTimelineYear = window.myTimelineVis.selectedYear;
+            console.log('Setting initial ActionHotspotVis year to timeline year:', currentTimelineYear);
+            window.myActionHotspotVis.setYear(currentTimelineYear);
+        }
+
+        console.log('Action Analysis mode activated');
+    }
+}
