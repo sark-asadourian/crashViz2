@@ -89,9 +89,7 @@ class MapVis {
             .attr("fill", "#ffffff")
             .attr("rx", 12);
 
-        // Draw GeoJSON if available
-        if (vis.geoData && vis.geoData.features) {
-            // Create projection centered on Toronto
+        // Create projection centered on Toronto (always create it for labels)
             let centerLng = (vis.lngMin + vis.lngMax) / 2;
             let centerLat = (vis.latMin + vis.latMax) / 2;
             
@@ -103,6 +101,8 @@ class MapVis {
             vis.path = d3.geoPath()
                 .projection(vis.projection);
 
+        // Draw GeoJSON if available
+        if (vis.geoData && vis.geoData.features) {
             // Draw roads
             vis.roads = vis.svg.selectAll(".road")
                 .data(vis.geoData.features)
@@ -115,6 +115,150 @@ class MapVis {
                 .attr("stroke-width", 0.3);
         }
 
+        // Define neighborhood labels data
+        vis.neighborhoods = [
+            { name: "Downtown Toronto", lat: 43.6537, lng: -79.3819 },
+            { name: "Etobicoke", lat: 43.6439, lng: -79.5643 },
+            { name: "North York", lat: 43.7722, lng: -79.4140 },
+            { name: "East York", lat: 43.6922, lng: -79.3291 },
+            { name: "York", lat: 43.6904, lng: -79.4786 },
+            { name: "Scarborough", lat: 43.7728, lng: -79.2582 }
+        ];
+
+        // Draw neighborhood labels
+        vis.neighborhoodLabels = vis.svg.selectAll(".neighborhood-label")
+            .data(vis.neighborhoods)
+            .enter()
+            .append("text")
+            .attr("class", "neighborhood-label")
+            .attr("x", d => vis.projection([d.lng, d.lat])[0])
+            .attr("y", d => vis.projection([d.lng, d.lat])[1])
+            .attr("text-anchor", "middle")
+            .attr("dy", "-0.5em")
+            .attr("font-size", "12px")
+            .attr("font-weight", "bold")
+            .attr("fill", "#333")
+            .attr("stroke", "white")
+            .attr("stroke-width", "0.3px")
+            .attr("paint-order", "stroke")
+            .text(d => d.name);
+
+        // Store initial projection parameters
+        if (vis.projection) {
+            vis.initialScale = vis.projection.scale();
+            vis.initialCenter = vis.projection.center();
+            
+            // Helper function to update all map elements
+            vis.updateMapElements = function() {
+                // Update the path generator
+                vis.path = d3.geoPath().projection(vis.projection);
+                
+                // Update roads
+                vis.svg.selectAll(".road").attr("d", vis.path);
+                
+                // Update crash points using projection coordinates
+                // Re-select crash points to ensure we have the current selection
+                let crashPoints = vis.svg.selectAll(".crash-point");
+                if (!crashPoints.empty()) {
+                    crashPoints
+                        .attr("cx", function(d) {
+                            if (d && d.lng !== undefined && d.lat !== undefined) {
+                                let coords = vis.projection([d.lng, d.lat]);
+                                return coords ? coords[0] : 0;
+                            }
+                            return 0;
+                        })
+                        .attr("cy", function(d) {
+                            if (d && d.lng !== undefined && d.lat !== undefined) {
+                                let coords = vis.projection([d.lng, d.lat]);
+                                return coords ? coords[1] : 0;
+                            }
+                            return 0;
+                        });
+                }
+                
+                // Update neighborhood labels
+                let labels = vis.svg.selectAll(".neighborhood-label");
+                if (!labels.empty()) {
+                    // Calculate current zoom scale factor
+                    let currentScale = vis.projection.scale();
+                    let scaleFactor = currentScale / vis.initialScale;
+                    let fontSize = Math.max(10, Math.min(16, 12 * scaleFactor));
+                    
+                    labels
+                        .attr("x", function(d) {
+                            if (d && d.lng !== undefined && d.lat !== undefined) {
+                                let coords = vis.projection([d.lng, d.lat]);
+                                return coords ? coords[0] : 0;
+                            }
+                            return 0;
+                        })
+                        .attr("y", function(d) {
+                            if (d && d.lng !== undefined && d.lat !== undefined) {
+                                let coords = vis.projection([d.lng, d.lat]);
+                                return coords ? coords[1] : 0;
+                            }
+                            return 0;
+                        })
+                        .attr("font-size", fontSize + "px");
+                    
+                    // Move labels to the front (on top of crash points)
+                    labels.each(function() {
+                        this.parentNode.appendChild(this);
+                    });
+                }
+            };
+            
+            // Store initial state for panning
+            let initialCenter, startPoint, isDragging = false;
+            
+            // Set up zoom behavior (handles scroll zoom and drag pan)
+            vis.zoom = d3.zoom()
+                .scaleExtent([0.5, 10]) // Allow zoom from 0.5x to 10x
+                .on("start", function(event) {
+                    // Check if this is a drag (mousedown) or zoom (wheel)
+                    if (event.sourceEvent && event.sourceEvent.type === "mousedown") {
+                        isDragging = true;
+                        // Store the initial center when drag starts
+                        initialCenter = vis.projection.center();
+                        // Store the starting point in geographic coordinates
+                        startPoint = vis.projection.invert([event.sourceEvent.x, event.sourceEvent.y]);
+                    } else {
+                        isDragging = false;
+                    }
+                })
+                .on("zoom", function(event) {
+                    // Always update projection scale based on zoom transform
+                    vis.projection.scale(event.transform.k * vis.initialScale);
+                    
+                    // Handle panning during drag
+                    if (isDragging && event.sourceEvent && startPoint) {
+                        // Get the current point under the mouse in geographic coordinates
+                        let currentPoint = vis.projection.invert([event.sourceEvent.x, event.sourceEvent.y]);
+                        if (currentPoint) {
+                            // Calculate the geographic delta
+                            let deltaLng = startPoint[0] - currentPoint[0];
+                            let deltaLat = startPoint[1] - currentPoint[1];
+                            
+                            // Update the projection center
+                            vis.projection.center([
+                                initialCenter[0] + deltaLng,
+                                initialCenter[1] + deltaLat
+                            ]);
+                        }
+                    }
+                    
+                    // Update all map elements
+                    vis.updateMapElements();
+                })
+                .on("end", function(event) {
+                    isDragging = false;
+                });
+            
+            // Apply zoom behavior to the SVG (handles both scroll zoom and drag pan)
+            vis.svg.call(vis.zoom);
+        }
+        
         vis.wrangleData();
     }
 
@@ -230,18 +374,30 @@ class MapVis {
 
         // Exit
         vis.crashPoints.exit()
-            .transition()
-            .duration(300)
-            .attr("opacity", 0)
-            .attr("r", 0)
             .remove();
+
+        // Helper function to get x coordinate (use projection if available, otherwise use linear scale)
+        let getX = function(d) {
+            if (vis.projection) {
+                return vis.projection([d.lng, d.lat])[0];
+            }
+            return d.x;
+        };
+        
+        // Helper function to get y coordinate (use projection if available, otherwise use linear scale)
+        let getY = function(d) {
+            if (vis.projection) {
+                return vis.projection([d.lng, d.lat])[1];
+            }
+            return d.y;
+        };
 
         // Enter
         vis.enter = vis.crashPoints.enter()
             .append("circle")
             .attr("class", "crash-point")
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y)
+            .attr("cx", getX)
+            .attr("cy", getY)
             .attr("r", 0)
             .attr("opacity", 0)
             .attr("fill", d => vis.severityColors[d.severity])
@@ -252,13 +408,17 @@ class MapVis {
         vis.merge = vis.enter.merge(vis.crashPoints);
 
         vis.merge
-            .transition()
-            .duration(300)
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y)
+            .attr("cx", getX)
+            .attr("cy", getY)
             .attr("r", d => d.size / 2)
             .attr("opacity", 0.8)
             .attr("fill", d => vis.severityColors[d.severity]);
+        
+        // Move labels to the front (on top of crash points)
+        vis.svg.selectAll(".neighborhood-label")
+            .each(function() {
+                this.parentNode.appendChild(this);
+            });
     }
 
     setYear(year) {
