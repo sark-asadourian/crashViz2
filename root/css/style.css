@@ -1,707 +1,119 @@
-/* Main Container */
-#main-container {
-    position: relative;
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    font-family: "Overpass", sans-serif;
+}
+
+.navbar {
+    height: 56px;
+    margin-bottom: 0;
+    background: linear-gradient(90deg, #7c47c4 0%, #8390d2 100%);
+}
+
+.container-fluid {
+    height: calc(100vh - 56px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.content-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding-right: 0;
-}
-
-/* Map container styling */
-#mapDiv {
-    width: 829px;
-    height: 609.88px;
-    margin-bottom: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 15px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    position: relative;
-}
-
-/* Ensure SVG fills the container */
-#mapDiv svg {
+    justify-content: flex-start;
+    align-items: stretch;
     width: 100%;
     height: 100%;
-    display: block;
-}
-#timelineDiv {
-    width: 900px;
-    margin: 0 auto;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    padding: 0.8rem;
+    box-sizing: border-box;
+    gap: 0.8rem;
 }
 
-.action-controls {
-    width: 100% !important;
-    max-width: 900px;
-    background: rgba(255, 255, 255, 0.15) !important;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-}
-
-#actionHotspotDiv {
-    position: absolute;
-    left: 112px;
-    top: 730px;
-    width: 829px;
-    height: 609px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #000000;
-    border: 2px solid #333333;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-}
-
-/* Options Panel */
-#options-panel {
-    position: absolute;
-    right: 40px;
-    top: 70px;
-    width: 250px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    padding: 20px;
-    z-index: 1000;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.options-title {
-    font-family: 'Overpass', sans-serif;
-    font-weight: 800;
-    font-size: 25px;
-    color: #000;
-    margin-bottom: 20px;
-}
-
-.filter-option {
-    margin-bottom: 15px;
-}
-
-.filter-option input[type="checkbox"] {
-    display: none;
-}
-
-.filter-option label {
+.map-section {
     display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 1rem;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+#mapDiv,
+#actionMapDiv {
+    flex: 1;
+    height: 100%;
+    background-color: #e9ecef;
+    border-radius: 8px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+#options-panel {
+    flex: 0 0 260px;
+    height: 100%;
+    overflow-y: auto;
+    border-radius: 8px;
+    background-color: white;
+    box-sizing: border-box;
+}
+
+#timelineDiv {
+    width: 100%;
+    height: 20vh;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    padding-top: 4rem;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    cursor: pointer;
-    position: relative;
-}
-
-.filter-indicator {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    border: 1px solid #000;
-    margin-right: 8px;
-    position: relative;
-}
-
-.filter-option input[type="checkbox"]:checked + label .filter-indicator::after {
-    content: '';
-    position: absolute;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background-color: #000;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.filter-label {
-    font-family: 'Overpass', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    color: #000;
-    margin-right: auto;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0;
 }
 
 .filter-checkbox {
-    width: 13px;
-    height: 13px;
-    border-radius: 2px;
-}
-
-.filter-checkbox.fatal {
-    background-color: rgba(226,55,55,0.76);
-}
-
-.filter-checkbox.major {
-    background-color: rgba(237,119,55,0.8);
-}
-
-.filter-checkbox.minor {
-    background-color: rgba(237,225,55,0.8);
-}
-
-.filter-checkbox.minimal {
-    background-color: rgba(128,128,128,0.8);
-}
-
-/* Crash points */
-.crash-point {
-    cursor: pointer;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-    transition: all 0.3s ease;
-    vector-effect: non-scaling-stroke;
-}
-
-.crash-point:hover {
-    opacity: 1 !important;
-    stroke-width: 3px !important;
-    filter: drop-shadow(0 2px 6px rgba(255,255,255,0.3));
-}
-
-/* Action Hotspot specific styles */
-.action-controls {
-    font-family: 'Overpass', sans-serif;
-}
-
-.show-actions-btn {
-    transition: all 0.3s ease;
-}
-
-.show-actions-btn:hover {
-    background: #0056b3 !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
-}
-
-.options-container {
-    transition: all 0.3s ease;
-}
-
-.basic-info {
-    background: #f8f9fa;
-    padding: 8px 16px;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
-}
-
-.hotspot-legend {
-    font-size: 11px;
-    color: #333;
-    margin-top: 10px;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 4px;
-    border: 1px solid #ddd;
-}
-
-.hotspot-legend div:first-child {
-    font-weight: bold;
-    margin-bottom: 6px;
-    color: #333;
-    font-size: 12px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 3px;
-}
-
-.legend-color {
-    width: 14px;
-    height: 14px;
-    margin-right: 8px;
-    border: 1px solid #666;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
     border-radius: 3px;
+    vertical-align: middle;
 }
+.filter-checkbox.fatal { background-color: #dc3545; }
+.filter-checkbox.major { background-color: #fd7e14; }
+.filter-checkbox.minor { background-color: #ffc107; }
+.filter-checkbox.minimal { background-color: #198754; }
 
-.vis-title {
-    font-size: 16px;
-    font-weight: bold;
-    fill: #190505 !important;
-    font-family: 'Overpass', sans-serif;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Action cluster points */
-.action-cluster {
-    cursor: pointer;
-    transition: all 0.3s ease;
-    vector-effect: non-scaling-stroke;
-}
-
-.action-cluster:hover,
-.individual-point:hover {
-    stroke-width: 3px;
-    opacity: 1;
-    cursor: pointer;
-    filter: drop-shadow(0 0 8px rgba(0,0,0,0.3));
-    transform: scale(1.02);
-}
-
-/* Zoom Controls */
-.zoom-controls {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    z-index: 1000;
-    font-family: Arial, sans-serif;
-}
-
-.zoom-btn {
-    display: block;
-    width: 40px;
-    height: 40px;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-bottom: 5px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.zoom-btn:hover {
-    background: #f0f0f0 !important;
-    transform: scale(1.05);
-}
-
-.zoom-btn:active {
-    background: #e0e0e0 !important;
-    transform: scale(0.95);
-}
-
-.zoom-reset {
-    font-size: 16px;
-}
-
-/* Ensure map elements are zoomable */
-.road {
-    vector-effect: non-scaling-stroke;
-    pointer-events: none;
-}
-
-.zoomable-svg {
-    cursor: move;
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
-}
-
-.zoomable-svg:active {
-    cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-}
-
-/* Stats Panel */
-.stats-panel {
-    font-family: Arial, sans-serif;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.stats-title {
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-}
-
-.stats-content div {
-    margin-bottom: 5px;
-    line-height: 1.4;
-}
-
-/* Pie Charts */
-.pie-charts-container {
-    font-family: Arial, sans-serif;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.pie-charts-title {
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-.pie-chart-container {
-    padding: 10px;
-    border: 1px solid #eee;
-    border-radius: 6px;
-    background: #f9f9f9;
-}
-
-.pie-chart-container.driver-pie {
-    border-left: 3px solid #e41a1c;
-}
-
-.pie-chart-container.pedestrian-pie {
-    border-left: 3px solid #377eb8;
-}
-
-.pie-chart-container.cyclist-pie {
-    border-left: 3px solid #4daf4a;
-}
-
-.pie-charts-content {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.filter-section {
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.section-title {
-    font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 8px;
-    color: #333;
-}
-
-.analysis-btn, .improvement-btn {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: #f8f9fa;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.3s ease;
-}
-
-.analysis-btn:hover, .improvement-btn:hover {
-    background: #e9ecef;
-    border-color: #adb5bd;
-}
-
-.analysis-btn.active, .improvement-btn.active {
-    background: #007bff;
-    color: white;
-    border-color: #007bff;
-}
-
-.form-select {
-    font-size: 12px;
-    padding: 4px 8px;
-}
-
-#improvements-panel {
-    position: absolute;
-    top: 50px;
-    right: 20px;
-    width: 300px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 15px;
-    z-index: 1000;
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-.improvements-title {
-    font-weight: bold;
-    font-size: 16px;
-    margin-bottom: 15px;
-    color: #333;
-}
-
-.improvement-item {
-    margin-bottom: 12px;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    border-left: 4px solid #007bff;
-}
-
-.improvement-item h5 {
-    margin: 0 0 5px 0;
-    font-size: 14px;
-    color: #333;
-}
-
-.improvement-item p {
-    margin: 0;
-    font-size: 12px;
-    color: #666;
-}
-
-.improvement-item .location {
-    font-weight: bold;
-    color: #007bff;
-}
-
-.action-hotspot {
-    stroke: #fff;
-    stroke-width: 1;
-    opacity: 0.8;
-}
-
-.action-legend {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-}
-
-/* Action Analysis Button */
-.action-analysis-btn {
-    position: absolute;
-    right: 40px;
-    top: 20px;
-    z-index: 1001;
-    padding: 10px 20px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: 'Overpass', sans-serif;
-    font-size: 14px;
-    transition: background-color 0.3s;
-}
-
-.action-analysis-btn:hover {
-    background: #0056b3;
-}
-
-/* Loading indicator */
-#loading-indicator {
-    font-family: 'Overpass', sans-serif;
-    font-weight: bold;
-}
-
-/* Animation keyframes */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Solution Gist Styles */
-.solution-gist {
-    backdrop-filter: blur(10px);
-    border: 2px solid #4CAF50 !important;
-    animation: fadeInUp 0.3s ease-out;
-    font-family: 'Overpass', sans-serif;
-    pointer-events: auto !important;
-}
-
-.solution-gist::before {
-    content: '';
-    position: absolute;
-    left: -8px;
-    top: 20px;
-    width: 0;
-    height: 0;
-    border-top: 8px solid transparent;
-    border-bottom: 8px solid transparent;
-    border-right: 8px solid #4CAF50;
-}
-
-.clickable-solution {
-    transition: all 0.2s ease !important;
-    cursor: pointer !important;
-}
-
-.clickable-solution:hover {
-    background: #e8f5e8 !important;
-    transform: translateX(2px) !important;
-    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2) !important;
-}
-
-/* Modal Styles */
-.solution-detail-modal {
-    z-index: 10001 !important;
-}
-
-.detailed-view-modal {
-    z-index: 10000 !important;
-    overflow: auto !important;
-}
-
-.close-solution-detail {
-    z-index: 10002 !important;
-}
-
-.solution-detail-modal > div {
-    max-height: 85vh !important;
-    overflow-y: auto !important;
-}
-
-.view-full-analysis-btn:hover {
-    background: #45a049 !important;
-    transform: translateY(-1px);
-}
-
-/* Solution cards in detailed view */
-.clickable-solution-detailed {
-    transition: all 0.3s ease;
-}
-
-.clickable-solution-detailed:hover {
-    background: #e8f5e8 !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15) !important;
-}
-
-/* Timeline elements */
-.timeline-track {
-    fill: rgba(255, 255, 255, 0.1) !important;
-}
-
-.year-label {
-    fill: #190505 !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* Improvement suggestions panel */
-.improvements-panel {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .detailed-view-modal > div {
-        grid-template-columns: 1fr !important;
-        width: 95% !important;
-        max-height: 90vh !important;
+@media (max-width: 992px) {
+    .map-section {
+        flex-direction: column;
+        flex: 1 1 auto;
+        height: auto;
     }
 
-    .detailed-view-modal > div > div:first-child {
-        border-right: none !important;
-        border-bottom: 1px solid #eee;
+    #mapDiv, #actionMapDiv {
+        width: 100%;
+        height: 60%;
     }
 
     #options-panel {
-        right: 20px;
-        width: 200px;
+        width: 100%;
+        height: 40%;
     }
 
-    #mapDiv {
-        margin-right: 250px;
+    #timelineDiv {
+        height: 20%;
     }
 }
 
-.detailed-view-modal > div {
-    max-width: 1000px !important;
-    max-height: 90vh !important;
-    width: 95% !important;
-}
-
-/* Ensure content areas scroll properly */
-.detailed-view-modal .content-column {
-    max-height: calc(90vh - 120px);
-    overflow-y: auto;
-}
-
-/* Better spacing for the detailed view */
-.detailed-view-modal .section {
-    margin-bottom: 25px;
-}
-
-.detailed-view-modal .section-title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #333;
-    border-bottom: 2px solid #667eea;
-    padding-bottom: 8px;
-}
-
-/* Make sure parent containers are positioned relatively */
-#action-hotspot-map, #regular-map {
-    position: relative;
-}
-
-/* Action Analysis Panel */
-#action-analysis-panel {
-    position: absolute;
-    top: 70px;
-    right: 40px;
-    width: 280px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    padding: 20px;
-    z-index: 1000;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.toggle-panel-btn {
-    transition: all 0.3s ease;
-}
-
-.toggle-panel-btn:hover {
-    background: #5a6268 !important;
-    transform: translateY(-1px);
-}
-
-.current-settings {
-    font-size: 12px;
-}
-
-.controls-container select {
-    transition: all 0.3s ease;
-}
-
-.controls-container select:hover {
-    border-color: #007bff !important;
-}
-
-.controls-container select:focus {
-    outline: none;
-    border-color: #007bff !important;
-    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+#mapDiv svg,
+#actionMapDiv svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100%;
+    object-fit: contain;
 }
