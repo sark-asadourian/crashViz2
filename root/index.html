@@ -6,18 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Toronto Crash Visualization</title>
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@800&display=swap" rel="stylesheet">
-
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-light">
 
-<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="#">Toronto Crash Visualization</a>
@@ -27,15 +21,11 @@
     </div>
 </nav>
 
-<!-- Main Container -->
 <div class="container-fluid">
     <div class="content-wrapper">
 
-        <!-- Top Section: Map + Options -->
         <div class="map-section">
-            <div id="mapDiv" class="border rounded shadow-sm position-relative">
-                <!-- d3 map will render here -->
-            </div>
+            <div id="mapDiv" class="border rounded shadow-sm position-relative"></div>
 
             <div id="options-panel" class="card shadow-sm">
                 <div class="card-body">
@@ -72,21 +62,18 @@
             </div>
         </div>
 
-        <!-- Bottom Section: Timeline -->
-        <div id="timelineDiv" class="border rounded shadow-sm">
-            <!-- timeline visualization will render here -->
+        <div id="timelineControls" style="display:flex; align-items:center; margin-bottom:5px;">
+            <button id="play-button">GO</button>
         </div>
+
+        <div id="timelineDiv" class="border rounded shadow-sm"></div>
 
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- D3 -->
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
-<!-- Custom Scripts -->
 <script src="js/solution.js"></script>
 <script src="js/timelineVis.js"></script>
 <script src="js/zoom.js"></script>

@@ -10,8 +10,10 @@ class TimelineVis {
         vis.yearRange = yearRange || [2006, 2024];
         vis.selectedYear = vis.yearRange[0];
         vis.onYearChange = null;
+        vis.isPlaying = false;
+        vis.interval = null;
 
-        vis.initVis()
+        vis.initVis();
     }
 
     initVis() {
@@ -151,6 +153,19 @@ class TimelineVis {
             .attr("font-family", "Overpass, sans-serif")
             .text("Drag the car to select year");
 
+        vis.playButton = d3.select("#play-button");
+
+        vis.isPlaying = false;
+        vis.playButton.text("GO");
+
+        vis.playButton.on("click", function() {
+            if (vis.isPlaying) {
+                vis.pauseTimeline();
+            } else {
+                vis.playTimeline();
+            }
+        });
+
         vis.drag = d3.drag()
             .on("start", function(event) {
                 d3.select(this).style("cursor", "grabbing");
@@ -191,6 +206,38 @@ class TimelineVis {
         vis.car.call(vis.drag);
 
         vis.updateVis();
+
+
+    }
+
+    playTimeline() {
+        let vis = this;
+        vis.isPlaying = true;
+        vis.playButton
+            .style("background-color", "#EE4B2B")
+            .text("STOP");
+
+        vis.interval = setInterval(() => {
+            if (vis.selectedYear < vis.yearRange[1]) {
+                vis.setYear(vis.selectedYear + 1);
+                if (vis.onYearChange) vis.onYearChange(vis.selectedYear);
+            } else {
+                vis.pauseTimeline();
+            }
+        }, 1000);
+    }
+
+    pauseTimeline() {
+        let vis = this;
+        vis.isPlaying = false;
+        vis.playButton
+            .style("background-color", "#4CBB17")
+            .text("GO");
+
+        if (vis.interval) {
+            clearInterval(vis.interval);
+            vis.interval = null;
+        }
     }
 
     _updateYearLabels() {
