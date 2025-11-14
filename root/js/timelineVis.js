@@ -11,6 +11,9 @@ class TimelineVis {
         vis.selectedYear = vis.yearRange[0];
         vis.onYearChange = null;
 
+        vis.isPlaying = false;
+        vis.playInterval = null;
+
         vis.initVis()
     }
 
@@ -109,6 +112,16 @@ class TimelineVis {
 
         vis.handle.call(vis.drag);
 
+        d3.select("#playButton").on("click", function() {
+            if (vis.isPlaying) {
+                vis.pause();
+                d3.select(this).text("▶");
+            } else {
+                vis.play();
+                d3.select(this).text("⏸");
+            }
+        });
+
         vis.updateVis();
     }
 
@@ -128,6 +141,33 @@ class TimelineVis {
             vis.selectedYear = year;
             let x = vis.yearScale(new Date(year, 0, 1));
             vis.handle.attr("transform", `translate(${x}, ${vis.height / 2})`);
+        }
+    }
+
+    play() {
+        let vis = this;
+        vis.isPlaying = true;
+
+        vis.playInterval = setInterval(() => {
+            let nextYear = vis.selectedYear + 1;
+            if (nextYear > vis.yearRange[1]) {
+                vis.pause();
+                d3.select("#playButton").text("▶");
+            } else {
+                vis.setYear(nextYear);
+                if (vis.onYearChange) {
+                    vis.onYearChange(nextYear);
+                }
+            }
+        }, 1200);
+    }
+
+    pause() {
+        let vis = this;
+        vis.isPlaying = false;
+        if (vis.playInterval) {
+            clearInterval(vis.playInterval);
+            vis.playInterval = null;
         }
     }
 }
