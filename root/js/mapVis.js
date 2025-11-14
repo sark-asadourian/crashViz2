@@ -28,7 +28,7 @@ class MapVis {
 
         vis.margin = {top: 0, right: 0, bottom: 0, left: 0};
         vis.width = 829 - vis.margin.left - vis.margin.right;
-        vis.height = 609.88 - vis.margin.top - vis.margin.bottom;
+        vis.height = 560 - vis.margin.top - vis.margin.bottom;
 
         // init drawing area
         vis.svg = d3.select("#" + vis.parentElement)

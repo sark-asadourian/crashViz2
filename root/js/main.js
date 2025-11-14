@@ -4,7 +4,8 @@
 
 // init global variables, switches, helper functions
 let myMapVis,
-    myTimelineVis;
+    myTimelineVis,
+    myLocationChart;
 
 // Load data using promises
 let promises = [
@@ -52,15 +53,18 @@ function initMainPage(crashData, geoData) {
     // Initialize visualizations
     myMapVis = new MapVis('mapDiv', crashData, geoData);
     myTimelineVis = new TimelineVis('timelineDiv', [minYear, maxYear]);
+    myLocationChart = new LocationChart('locationChart', crashData);
 
-    // Connect timeline to map
+    // Connect timeline to map and chart
     myTimelineVis.onYearChange = function(year) {
         myMapVis.setYear(year);
+        myLocationChart.setYear(year);
     };
 
     // Set initial year
     myTimelineVis.setYear(minYear);
     myMapVis.setYear(minYear);
+    myLocationChart.setYear(minYear);
 
     // Set up filter checkboxes
     setupFilters();
@@ -93,6 +97,7 @@ function updateFilters() {
     if (d3.select('#filter-minimal').property('checked')) activeFilters.push('Minimal');
 
     myMapVis.setFilters(activeFilters);
+    myLocationChart.setFilters(activeFilters);
 }
 
 function setupScrollListener() {
