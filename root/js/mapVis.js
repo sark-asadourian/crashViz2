@@ -264,7 +264,6 @@ class MapVis {
         vis.wrangleData();
     }
 
-    // In MapVis class - this should already exist
     createActionAnalysisButton() {
         let vis = this;
 
@@ -466,9 +465,15 @@ class MapVis {
         vis.wrangleData();
     }
 
+// In MapVis class
     switchToActionAnalysis() {
         let vis = this;
         console.log('Switching to Action Analysis mode');
+
+        // Reset timeline to beginning year BEFORE any other operations
+        if (window.myTimelineVis) {
+            window.myTimelineVis.resetToBeginning();
+        }
 
         // Hide the regular map visualization but keep the container
         d3.select("#" + vis.parentElement).select("svg").style("display", "none");
@@ -511,20 +516,20 @@ class MapVis {
         window.myActionHotspotVis.createBackButton();
 
         if (window.myTimelineVis) {
-            console.log('Reconnecting timeline to ActionHotspotVis only');
+            console.log('Reconnecting timeline to ActionHotspotVis');
 
             window.myTimelineVis.onYearChange = function (year) {
-                console.log('Timeline -> ActionHotspotVis ONLY:', year);
+                console.log('Timeline -> ActionHotspotVis:', year);
                 if (window.myActionHotspotVis) {
-                    console.log('Setting ActionHotspotVis year to:', year);
                     window.myActionHotspotVis.setYear(year);
                 }
             };
 
-            // Force update to current timeline year
             const currentTimelineYear = window.myTimelineVis.selectedYear;
-            console.log('Setting initial ActionHotspotVis year to timeline year:', currentTimelineYear);
-            window.myActionHotspotVis.setYear(currentTimelineYear);
+            console.log('Setting ActionHotspotVis to timeline year:', currentTimelineYear);
+            if (window.myActionHotspotVis) {
+                window.myActionHotspotVis.setYear(currentTimelineYear);
+            }
         }
 
         console.log('Action Analysis mode activated');

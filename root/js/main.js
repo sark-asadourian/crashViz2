@@ -50,6 +50,7 @@ function initMainPage(crashData, geoData) {
     myMapVis = new MapVis('mapDiv', crashData, geoData);
     myTimelineVis = new TimelineVis('timelineDiv', [minYear, maxYear]);
 
+
     // Connect timeline to map
     myTimelineVis.onYearChange = function(year) {
         console.log('Timeline year changed to:', year);
@@ -112,47 +113,31 @@ function setupScrollListener() {
     });
 }
 
-function updateYearFromScroll() {
-    if (!myTimelineVis) return;
+function switchToActionAnalysis() {
+    console.log('🔄 SWITCHING TO ACTION ANALYSIS');
 
-    // Calculate scroll position
-    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    let documentHeight = document.documentElement.scrollHeight - window.innerHeight;
-    let scrollPercent = Math.max(0, Math.min(1, scrollTop / documentHeight));
-
-    // Map scroll position to year range
-    let yearRange = myTimelineVis.yearRange;
-    let selectedYear = Math.round(yearRange[0] + scrollPercent * (yearRange[1] - yearRange[0]));
-
-    // Clamp to valid range
-    selectedYear = Math.max(yearRange[0], Math.min(yearRange[1], selectedYear));
-
-    // Update timeline and map
-    if (myTimelineVis.selectedYear !== selectedYear) {
-        myTimelineVis.setYear(selectedYear);
-        myMapVis.setYear(selectedYear);
-    }
-}
-
-// Add function to switch back to main map
-function switchToMainMap() {
-    console.log('Switching back to main map');
-    d3.select("#actionHotspotDiv").style("display", "none");
-    d3.select("#mapDiv").style("display", "block");
-
-    // Update timeline to control main map
+    // First, ensure timeline is reset to beginning
     if (window.myTimelineVis) {
+        const beginningYear = window.myTimelineVis.yearRange[0];
+        console.log('📅 Setting timeline to beginning year:', beginningYear);
+
+        // Directly set the timeline to beginning
+        window.myTimelineVis.selectedYear = beginningYear;
+        window.myTimelineVis.updateTimelinePosition();
+
+        // CRITICAL: Reconnect timeline to control ActionHotspotVis
         window.myTimelineVis.onYearChange = function(year) {
+            console.log('Timeline -> ActionHotspotVis:', year);
+            if (window.myActionHotspotVis) {
+                window.myActionHotspotVis.setYear(year);
+            }
+
             if (window.myMapVis) {
-                window.myMapVis.setYear(year);
             }
         };
     }
-}
 
-function switchToActionAnalysis() {
-    console.log('Switching to Action Analysis from main');
-
+    // Then switch to action analysis
     if (window.myMapVis) {
         window.myMapVis.switchToActionAnalysis();
     } else {
@@ -160,9 +145,6 @@ function switchToActionAnalysis() {
     }
 }
 
-// Make it globally available
 window.switchToActionAnalysis = switchToActionAnalysis;
 
-// Make this function globally available
 window.switchToMainMap = switchToMainMap;
-

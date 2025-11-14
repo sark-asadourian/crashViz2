@@ -18,11 +18,11 @@ class ActionHotspotVis {
         vis.createBackButton();
         vis.improvementSuggestions = new ImprovementSuggestions(crashData, solutionsData);
 
-        // Define colors for each action type
+        // colors for each action type
         vis.actionTypeColors = {
-            'Driver': '#7e96f6',
-            'Pedestrian': '#984040',
-            'Cyclist': '#23c350'
+            'Driver': 'rgb(156,95,227)',
+            'Pedestrian': "rgb(0,204,237)",
+            'Cyclist': 'rgba(216,85,105,0.8)'
         };
 
         vis.neighborhoods = [
@@ -219,7 +219,7 @@ class ActionHotspotVis {
             .attr("fill", "#ffffff")
             .attr("rx", 12);
 
-        // Draw GeoJSON if available
+        // Draw GeoJSON
         if (vis.geoData && vis.geoData.features) {
             vis.svg.selectAll(".road")
                 .data(vis.geoData.features)
@@ -250,83 +250,11 @@ class ActionHotspotVis {
             .attr("dy", "-0.5em")
             .attr("font-size", "12px")
             .attr("font-weight", "bold")
-            .attr("fill", "#333")
+            .attr("fill", "rgba(14,12,12,0.87)")
             .attr("stroke", "white")
             .attr("stroke-width", "0.3px")
             .attr("paint-order", "stroke")
             .text(d => d.name);
-    }
-
-    setupInteractions() {
-        let vis = this;
-
-        vis.updateMapElements = function () {
-            vis.path = d3.geoPath().projection(vis.projection);
-
-            // Update roads
-            vis.svg.selectAll(".road").attr("d", vis.path);
-
-            // Update action points
-            let actionPoints = vis.svg.selectAll(".action-point");
-            if (!actionPoints.empty()) {
-                actionPoints
-                    .attr("cx", d => {
-                        if (d && d.lng !== undefined && d.lat !== undefined) {
-                            let coords = vis.projection([d.lng, d.lat]);
-                            return coords ? coords[0] : 0;
-                        }
-                        return 0;
-                    })
-                    .attr("cy", d => {
-                        if (d && d.lng !== undefined && d.lat !== undefined) {
-                            let coords = vis.projection([d.lng, d.lat]);
-                            return coords ? coords[1] : 0;
-                        }
-                        return 0;
-                    });
-            }
-
-            // Update neighborhood labels
-            vis.updateNeighborhoodLabels();
-        };
-
-        // Set up zoom behavior
-        let initialCenter, startPoint, isDragging = false;
-
-        vis.zoom = d3.zoom()
-            .scaleExtent([0.5, 10])
-            .on("start", function (event) {
-                if (event.sourceEvent && event.sourceEvent.type === "mousedown") {
-                    isDragging = true;
-                    initialCenter = vis.projection.center();
-                    startPoint = vis.projection.invert([event.sourceEvent.x, event.sourceEvent.y]);
-                } else {
-                    isDragging = false;
-                }
-            })
-            .on("zoom", function (event) {
-                vis.projection.scale(event.transform.k * vis.initialScale);
-
-                if (isDragging && event.sourceEvent && startPoint) {
-                    let currentPoint = vis.projection.invert([event.sourceEvent.x, event.sourceEvent.y]);
-                    if (currentPoint) {
-                        let deltaLng = startPoint[0] - currentPoint[0];
-                        let deltaLat = startPoint[1] - currentPoint[1];
-
-                        vis.projection.center([
-                            initialCenter[0] + deltaLng,
-                            initialCenter[1] + deltaLat
-                        ]);
-                    }
-                }
-
-                vis.updateMapElements();
-            })
-            .on("end", function () {
-                isDragging = false;
-            });
-
-        vis.svg.call(vis.zoom);
     }
 
     updateNeighborhoodLabels() {
@@ -372,10 +300,10 @@ class ActionHotspotVis {
         vis.sidePanel = d3.select("body")
             .append("div")
             .attr("id", "options-panel")
-            .style("position", "absolute")
+            .style("position", "fixed")
             .style("top", "20px")
-            .style("right", "20px")
-            .style("width", "300px")
+            .style("width", "310px")
+            .style("height", "650px")
             .style("background", "rgba(255, 255, 255, 0.98)")
             .style("border", "1px solid #ccc")
             .style("border-radius", "8px")
@@ -418,7 +346,7 @@ class ActionHotspotVis {
 
         vis.sidePanel.append("div")
             .attr("class", "current-settings")
-            .style("background", "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)")
+            .style("background", 'rgba(128,128,128,0.8)')
             .style("padding", "15px")
             .style("border-radius", "8px")
             .style("margin-bottom", "20px")
@@ -650,17 +578,6 @@ class ActionHotspotVis {
 
     createYearDisplay() {
         let vis = this;
-
-        vis.yearDisplay = vis.svg.append("text")
-            .attr("class", "year-display")
-            .attr("x", vis.width - 10)
-            .attr("y", vis.height - 10)
-            .attr("text-anchor", "end")
-            .style("font-size", "12px")
-            .style("font-weight", "bold")
-            .style("fill", "#333")
-            .style("pointer-events", "none")
-            .text(`Year: ${vis.selectedYear}`);
     }
 
     createClickInstruction() {
@@ -770,6 +687,7 @@ class ActionHotspotVis {
         );
     }
 
+
     createNewCluster(d) {
         return {
             centerLat: d.lat,
@@ -856,6 +774,7 @@ class ActionHotspotVis {
             districts: cluster.districts
         };
     }
+
 
     findTopAction(actionCounts) {
         let topAction = 'No Action Data';
@@ -947,7 +866,7 @@ class ActionHotspotVis {
             .attr("fill", d => d.color)
             .attr("stroke", "#fff")
             .attr("stroke-width", 1)
-            .attr("opacity", 0.7)
+            .attr("opacity", 0.9)
             .on("mouseover", function (event, d) {
                 vis.showIndividualTooltip(event, d);
             })
@@ -976,7 +895,7 @@ class ActionHotspotVis {
             .attr("fill", d => d.color)
             .attr("stroke", "#fff")
             .attr("stroke-width", 1.5)
-            .attr("opacity", 0.8)
+            .attr("opacity", 0.61)
             .on("mouseover", function (event, d) {
                 vis.showClusterTooltip(event, d);
             })
@@ -1102,20 +1021,26 @@ class ActionHotspotVis {
     setYear(year) {
         let vis = this;
 
-        if (year < 2006 || year > 2023) return;
+        console.log('ActionHotspotVis.setYear called with:', year);
+
+        if (year < 2006 || year > 2023) {
+            console.log('Year out of range, ignoring:', year);
+            return;
+        }
 
         if (vis.selectedYear !== year) {
             vis.selectedYear = year;
 
-            if (vis.yearDisplay) {
-                vis.yearDisplay.text(`Year: ${vis.selectedYear}`);
-            }
-
+            // Update the current settings display
             vis.updateCurrentSettings();
 
             if (!vis.isEmptyMapMode) {
                 vis.wrangleData();
             }
+
+            vis.updateVis();
+        } else {
+            console.log('Year unchanged, skipping update');
         }
     }
 
@@ -1142,9 +1067,9 @@ class ActionHotspotVis {
             .append("button")
             .attr("class", "back-to-map-btn")
             .html("← Back to Regular Map")
-            .style("position", "fixed") // Use fixed instead of absolute
+            .style("position", "fixed")
             .style("top", "20px")
-            .style("left", "20px") // Position on left side to avoid panel
+            .style("left", "20px")
             .style("z-index", "1001")
             .style("padding", "12px 20px")
             .style("background", "linear-gradient(135deg, #667eea, #764ba2)")
@@ -1178,7 +1103,7 @@ class ActionHotspotVis {
         let vis = this;
         console.log('Switching back to main map');
 
-        // Debug: Check what's available
+        // Debug:
         console.log('Available data:', {
             crashData: !!window.crashData,
             geoData: !!window.geoData,
@@ -1248,7 +1173,6 @@ class ActionHotspotVis {
     getSolutionsForDataPoint(d) {
         let vis = this;
 
-        // Extract action information from the data point
         let actionType, specificAction;
 
         if (d.originalData) {
@@ -1344,7 +1268,7 @@ class ActionHotspotVis {
                 }
             }
 
-            // If no specific action matching, return solutions for this beneficiary type
+            // If no specific action matching, return solutions
             return true;
         });
 
@@ -1476,267 +1400,6 @@ class ActionHotspotVis {
         }
     }
 
-    displayImprovementSuggestions(suggestions) {
-        let vis = this;
-
-        // Clear previous content
-        vis.improvementsPanel.html("");
-
-        // Add header
-        vis.improvementsPanel.append("h4")
-            .text("Safety Improvement Suggestions")
-            .style("margin", "0 0 15px 0")
-            .style("color", "#333")
-            .style("font-size", "16px");
-
-        if (suggestions.length === 0) {
-            vis.improvementsPanel.append("div")
-                .text("No specific improvement suggestions based on current filters")
-                .style("color", "#666")
-                .style("font-style", "italic")
-                .style("text-align", "center")
-                .style("padding", "20px");
-            return;
-        }
-
-        // Create suggestion cards
-        const suggestionCards = vis.improvementsPanel.selectAll(".suggestion-card")
-            .data(suggestions)
-            .enter()
-            .append("div")
-            .attr("class", "suggestion-card")
-            .style("background", "#f8f9fa")
-            .style("border", "1px solid #e0e0e0")
-            .style("border-radius", "6px")
-            .style("padding", "12px")
-            .style("margin-bottom", "10px")
-            .style("cursor", "pointer")
-            .on("mouseover", function () {
-                d3.select(this).style("border-color", "#4CAF50");
-            })
-            .on("mouseout", function () {
-                d3.select(this).style("border-color", "#e0e0e0");
-            })
-            .on("click", function (event, d) {
-                vis.showSuggestionDetails(d);
-            });
-
-        suggestionCards.each(function (d) {
-            const card = d3.select(this);
-
-            // Header with icon and priority
-            const header = card.append("div")
-                .style("display", "flex")
-                .style("justify-content", "space-between")
-                .style("align-items", "center")
-                .style("margin-bottom", "8px");
-
-            header.append("div")
-                .style("display", "flex")
-                .style("align-items", "center")
-                .html(`
-                    <span style="font-size: 20px; margin-right: 8px;">${d.icon}</span>
-                    <div>
-                        <div style="font-weight: bold; font-size: 13px;">${d.title}</div>
-                        <div style="font-size: 11px; color: #666;">${d.improvementType}</div>
-                    </div>
-                `);
-
-            // Priority badge
-            const priorityColor = d.priorityLevel === 'High' ? '#e23725' :
-                d.priorityLevel === 'Medium' ? '#ff7f00' : '#ffd700';
-            header.append("div")
-                .style("background", priorityColor)
-                .style("color", "white")
-                .style("padding", "2px 6px")
-                .style("border-radius", "10px")
-                .style("font-size", "10px")
-                .style("font-weight", "bold")
-                .text(d.priorityLevel);
-
-            // Quick stats
-            const stats = card.append("div")
-                .style("display", "grid")
-                .style("grid-template-columns", "1fr 1fr")
-                .style("gap", "5px")
-                .style("font-size", "11px")
-                .style("margin-bottom", "8px");
-
-            stats.append("div")
-                .html(`<strong>${d.crashesBenefited}</strong> crashes benefited`);
-
-            stats.append("div")
-                .html(`<strong>${d.severityImpact}</strong> severe crashes`);
-
-            // Targeted actions
-            card.append("div")
-                .style("font-size", "10px")
-                .style("color", "#666")
-                .html(`<strong>Targets:</strong> ${d.actionsTargeted.slice(0, 2).join(', ')}`);
-        });
-    }
-
-    showSuggestionDetails(suggestion) {
-        let vis = this;
-
-        // Remove any existing detail tooltips first
-        d3.selectAll(".suggestion-detail-tooltip").remove();
-
-        // Create detailed tooltip
-        const tooltip = d3.select("body")
-            .append("div")
-            .attr("class", "suggestion-detail-tooltip")
-            .style("position", "fixed")
-            .style("background", "rgba(255, 255, 255, 0.98)")
-            .style("border", `3px solid ${suggestion.priorityLevel === 'High' ? '#e23725' :
-                suggestion.priorityLevel === 'Medium' ? '#ff7f00' : '#ffd700'}`)
-            .style("border-radius", "10px")
-            .style("padding", "20px")
-            .style("max-width", "500px")
-            .style("max-height", "600px")
-            .style("overflow-y", "auto")
-            .style("box-shadow", "0 8px 25px rgba(0,0,0,0.2)")
-            .style("z-index", "10000")
-            .style("font-family", "Overpass, sans-serif")
-            .style("pointer-events", "auto")
-            .style("left", "50%")
-            .style("top", "50%")
-            .style("transform", "translate(-50%, -50%)");
-
-        // Build specific solutions HTML
-        let specificSolutionsHTML = '';
-        if (suggestion.specificSolutions && suggestion.specificSolutions.length > 0) {
-            specificSolutionsHTML = `
-        <div style="margin-top: 15px;">
-            <div style="font-weight: bold; margin-bottom: 8px; color: #333; font-size: 14px;">Recommended Interventions:</div>
-            ${suggestion.specificSolutions.map(sol => `
-                <div style="background: #f0f8ff; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #1e90ff;">
-                    <div style="font-weight: bold; color: #333;">${sol.name}</div>
-                    <div style="font-size: 11px; color: #666;">
-                        <strong>Type:</strong> ${sol.type} | 
-                        <strong>Beneficiary:</strong> ${sol.beneficiary}
-                    </div>
-                    ${sol.contributingFactors ? `<div style="font-size: 10px; color: #888; margin-top: 3px;"><strong>Addresses:</strong> ${sol.contributingFactors}</div>` : ''}
-                </div>
-            `).join('')}
-        </div>
-    `;
-        }
-
-        tooltip.html(`
-    <div style="position: relative;">
-        <!-- Close button - properly positioned -->
-        <button class="close-suggestion-detail" 
-                style="position: absolute; top: 10px; right: 10px; background: #e23725; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10002;">
-            ×
-        </button>
-        
-        <div style="display: flex; align-items: flex-start; margin-bottom: 15px; padding-right: 40px;">
-            <span style="font-size: 32px; margin-right: 12px;">${suggestion.icon}</span>
-            <div style="flex: 1;">
-                <h3 style="margin: 0 0 5px 0; color: #333;">${suggestion.title}</h3>
-                <div style="color: #666; font-size: 14px; font-weight: bold;">${suggestion.improvementType}</div>
-            </div>
-        </div>
-        
-        <div style="margin-bottom: 15px; color: #555; line-height: 1.4;">
-            ${suggestion.description}
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-            <div style="background: #e8f5e8; padding: 8px; border-radius: 6px;">
-                <div style="font-size: 12px; color: #666;">Crashes Benefited</div>
-                <div style="font-size: 18px; font-weight: bold; color: #4CAF50;">${suggestion.crashesBenefited}</div>
-            </div>
-            <div style="background: #ffe8e8; padding: 8px; border-radius: 6px;">
-                <div style="font-size: 12px; color: #666;">Severe Crashes</div>
-                <div style="font-size: 18px; font-weight: bold; color: #e23725;">${suggestion.severityImpact}</div>
-            </div>
-        </div>
-        
-        <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Targeted Action Patterns:</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-                ${suggestion.actionsTargeted.map(action =>
-            `<span style="background: #e3f2fd; color: #1976d2; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">${action}</span>`
-        ).join('')}
-            </div>
-        </div>
-        
-        ${specificSolutionsHTML}
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; font-size: 12px;">
-            <div><strong>Effectiveness:</strong><br>${suggestion.effectiveness}</div>
-            <div><strong>Cost:</strong><br>${suggestion.cost}</div>
-            <div><strong>Timeline:</strong><br>${suggestion.implementation}</div>
-        </div>
-        
-        <div style="background: #fff3cd; padding: 10px; border-radius: 6px; border-left: 4px solid #ffc107;">
-            <div style="font-weight: bold; color: #856404;">Priority: ${suggestion.priorityLevel}</div>
-            <div style="font-size: 11px; color: #856404;">Based on crash frequency and severity impact</div>
-        </div>
-        
-        ${suggestion.districts && suggestion.districts.length > 0 ? `
-            <div style="margin-top: 10px; font-size: 11px; color: #666;">
-                <strong>Top Districts:</strong> ${suggestion.districts.join(', ')}
-            </div>
-        ` : ''}
-        
-        <div style="margin-top: 15px; text-align: center;">
-            <button class="close-suggestion-btn" 
-                    style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                Close Details
-            </button>
-        </div>
-    </div>
-`);
-
-        // Add event handlers for both close buttons
-        tooltip.select(".close-suggestion-detail")
-            .on("click", function () {
-                tooltip.remove();
-                overlay.remove();
-            });
-
-        tooltip.select(".close-suggestion-btn")
-            .on("click", function () {
-                tooltip.remove();
-                overlay.remove();
-            });
-
-        // Add click outside to close functionality
-        const overlay = d3.select("body")
-            .append("div")
-            .attr("class", "tooltip-overlay")
-            .style("position", "fixed")
-            .style("top", "0")
-            .style("left", "0")
-            .style("width", "100%")
-            .style("height", "100%")
-            .style("background", "rgba(0,0,0,0.5)")
-            .style("z-index", "9999")
-            .style("pointer-events", "auto")
-            .on("click", function () {
-                tooltip.remove();
-                overlay.remove();
-            });
-
-        // Also close when pressing Escape key
-        const escapeHandler = function (event) {
-            if (event.key === "Escape") {
-                tooltip.remove();
-                overlay.remove();
-                document.removeEventListener("keydown", escapeHandler);
-            }
-        };
-        document.addEventListener("keydown", escapeHandler);
-
-        // Clean up event listeners when tooltip is removed
-        tooltip.on("remove", function () {
-            overlay.remove();
-            document.removeEventListener("keydown", escapeHandler);
-        });
-    }
 
     showSolutionDetails(solution, dataPoint) {
         let vis = this;
@@ -1890,7 +1553,6 @@ class ActionHotspotVis {
         });
     }
 
-    // ADD THESE MISSING METHODS TO THE ActionHotspotVis CLASS:
 
     buildDetailedViewHTML(data, solutions, isCluster) {
         let vis = this;
@@ -2491,6 +2153,101 @@ class ActionHotspotVis {
     </div>
 </div>
 `;
+    }
+
+    handleZoomUpdate() {
+        let vis = this;
+
+        if (vis.displayMode === 'individual') {
+            // Update individual points
+            vis.svg.selectAll(".action-point")
+                .attr("cx", d => {
+                    if (d && d.lng !== undefined && d.lat !== undefined) {
+                        let coords = vis.projection([d.lng, d.lat]);
+                        return coords ? coords[0] : 0;
+                    }
+                    return 0;
+                })
+                .attr("cy", d => {
+                    if (d && d.lng !== undefined && d.lat !== undefined) {
+                        let coords = vis.projection([d.lng, d.lat]);
+                        return coords ? coords[1] : 0;
+                    }
+                    return 0;
+                });
+        } else {
+            // Update clusters - reproject all cluster centers
+            vis.svg.selectAll(".action-cluster")
+                .attr("cx", d => {
+                    if (d && d.lng !== undefined && d.lat !== undefined) {
+                        let coords = vis.projection([d.lng, d.lat]);
+                        return coords ? coords[0] : 0;
+                    }
+                    return 0;
+                })
+                .attr("cy", d => {
+                    if (d && d.lng !== undefined && d.lat !== undefined) {
+                        let coords = vis.projection([d.lng, d.lat]);
+                        return coords ? coords[1] : 0;
+                    }
+                    return 0;
+                });
+        }
+
+        // Update neighborhood labels
+        vis.updateNeighborhoodLabels();
+    }
+
+    setupInteractions() {
+        let vis = this;
+
+        vis.updateMapElements = function () {
+            vis.path = d3.geoPath().projection(vis.projection);
+
+            // Update roads
+            vis.svg.selectAll(".road").attr("d", vis.path);
+
+            // Use the new zoom update handler for points and clusters
+            vis.handleZoomUpdate();
+        };
+
+        // Set up zoom behavior
+        let initialCenter, startPoint, isDragging = false;
+
+        vis.zoom = d3.zoom()
+            .scaleExtent([0.5, 10])
+            .on("start", function (event) {
+                if (event.sourceEvent && event.sourceEvent.type === "mousedown") {
+                    isDragging = true;
+                    initialCenter = vis.projection.center();
+                    startPoint = vis.projection.invert([event.sourceEvent.x, event.sourceEvent.y]);
+                } else {
+                    isDragging = false;
+                }
+            })
+            .on("zoom", function (event) {
+                vis.projection.scale(event.transform.k * vis.initialScale);
+
+                if (isDragging && event.sourceEvent && startPoint) {
+                    let currentPoint = vis.projection.invert([event.sourceEvent.x, event.sourceEvent.y]);
+                    if (currentPoint) {
+                        let deltaLng = startPoint[0] - currentPoint[0];
+                        let deltaLat = startPoint[1] - currentPoint[1];
+
+                        vis.projection.center([
+                            initialCenter[0] + deltaLng,
+                            initialCenter[1] + deltaLat
+                        ]);
+                    }
+                }
+
+                vis.updateMapElements();
+            })
+            .on("end", function () {
+                isDragging = false;
+            });
+
+        vis.svg.call(vis.zoom);
     }
 
 }
