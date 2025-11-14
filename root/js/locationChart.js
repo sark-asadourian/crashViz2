@@ -42,7 +42,7 @@ class LocationChart {
         vis.svg.append("text")
             .attr("class", "chart-description")
             .attr("x", vis.width / 2 - 10)
-            .attr("y", vis.height +95)
+            .attr("y", vis.height + 95)
             .attr("text-anchor", "middle")
             .style("font-size", "11px")
             .style("fill", "#555")
@@ -69,7 +69,10 @@ class LocationChart {
             (vis.activeFilters.length === 0 || vis.activeFilters.includes(d['Accident Classification']))
         );
 
-        let counts = d3.rollups(filtered, v => v.length, d => d['Toronto Neighbourhood Name']);
+        let counts = d3.rollups(filtered, v => v.length, d => d['DISTRICT']);
+
+        let allDistricts = Array.from(new Set(filtered.map(d => d['DISTRICT'])));
+        console.log("All districts:", allDistricts);
 
         counts.sort((a, b) => b[1] - a[1]);
         vis.displayData = counts.slice(0, 8);
