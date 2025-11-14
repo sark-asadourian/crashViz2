@@ -164,6 +164,11 @@ class MapVis {
                     vis.crashPointsVis.updateCoordinates(vis.projection);
                 }
                 
+                // Update improvement circles coordinates if improvements view is active
+                if (vis.improvementsVis) {
+                    vis.improvementsVis.updateCoordinates(vis.projection);
+                }
+                
                 // Update neighborhood labels
                 let labels = vis.svg.selectAll(".neighborhood-label");
                 if (!labels.empty()) {

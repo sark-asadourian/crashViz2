@@ -13,8 +13,6 @@ class TimelineVis {
 
         vis.isPlaying = false;
         vis.playInterval = null;
-
-        vis.initVis()
     }
 
     initVis() {

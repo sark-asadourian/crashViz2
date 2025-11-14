@@ -5,7 +5,10 @@
 // init global variables, switches, helper functions
 let myMapVis,
     myTimelineVis,
-    myLocationChart;
+    myLocationChart,
+    myCrashPointsVis,
+    myImprovementsVis;
+let currentView = 'map'; // 'map' or 'improvements'
 
 // Load data using promises
 let promises = [
@@ -28,6 +31,7 @@ Promise.all(promises)
 
 // initMainPage
 function initMainPage(crashData, geoData) {
+
     let vis = this;
 
     // Parse and clean crash data
@@ -58,18 +62,32 @@ function initMainPage(crashData, geoData) {
     // Initialize MapVis first (needed for SVG and projection)
     myMapVis.initVis();
 
+    // Initialize TimelineVis
+    myTimelineVis.initVis();
+
+    // Initialize LocationChart
+    myLocationChart.initVis();
+
     // Create and initialize CrashPointsVis with MapVis's SVG and projection
     myCrashPointsVis = new CrashPointsVis(myMapVis.svg, myMapVis.projection, myMapVis.severityColors);
     myMapVis.crashPointsVis = myCrashPointsVis; // Store reference in MapVis
     myCrashPointsVis.initVis();
 
-    // Initialize TimelineVis
-    myTimelineVis.initVis();
+    // Create and initialize ImprovementsVis with MapVis's SVG and projection
+    myImprovementsVis = new ImprovementsVis(myMapVis.svg, myMapVis.projection, crashData);
+    myMapVis.improvementsVis = myImprovementsVis; // Store reference in MapVis
+    myImprovementsVis.initVis();
+    myImprovementsVis.onBackClick = function() {
+        switchToMapView();
+    };
 
     // Connect timeline to map
     myTimelineVis.onYearChange = function(year) {
         myMapVis.setYear(year);
         myLocationChart.setYear(year);
+        if (myImprovementsVis && currentView === 'improvements') {
+            myImprovementsVis.wrangleData(crashData, year);
+        }
     };
 
     // Set initial year
@@ -82,6 +100,75 @@ function initMainPage(crashData, geoData) {
 
     // Set up scroll listener
     setupScrollListener();
+
+    // Set up improvements view button
+    setupImprovementsView();
+}
+
+function switchToImprovementsView() {
+    currentView = 'improvements';
+    
+    // Hide crash points
+    if (myCrashPointsVis) {
+        myCrashPointsVis.svg.selectAll(".crash-point").style("display", "none");
+    }
+    
+    // Hide LocationChart container
+    d3.select("#options-panel").select(".mt-4").style("display", "none");
+    
+    // Hide severity filters and buttons
+    d3.selectAll(".filter-option")
+        .filter(function() {
+            let inputId = d3.select(this).select("input").attr("id");
+            return inputId && inputId.startsWith("filter-");
+        })
+        .style("display", "none");
+    d3.select("#playButton").style("display", "none");
+    d3.select("#improvementsButton").style("display", "none");
+    
+    // Show improvement circles and create UI
+    if (myImprovementsVis) {
+        myImprovementsVis.show();
+        myImprovementsVis.createFactorFilters();
+        myImprovementsVis.createBackButton();
+        myImprovementsVis.wrangleData(myMapVis.crashData, myTimelineVis.selectedYear);
+    }
+}
+
+function switchToMapView() {
+    currentView = 'map';
+    
+    // Show crash points
+    if (myCrashPointsVis) {
+        myCrashPointsVis.svg.selectAll(".crash-point").style("display", "block");
+    }
+    
+    // Show LocationChart container
+    d3.select("#options-panel").select(".mt-4").style("display", "block");
+    
+    // Hide improvement circles
+    if (myImprovementsVis) {
+        myImprovementsVis.hide();
+        myImprovementsVis.removeFactorFilters();
+    }
+    
+    // Restore severity filters - they should already be in the DOM, just hidden
+    // The removeFactorFilters() method should have restored the original title
+    // The severity filter checkboxes are in the HTML, so they'll be visible again
+    d3.selectAll(".filter-option")
+        .filter(function() {
+            let inputId = d3.select(this).select("input").attr("id");
+            return inputId && inputId.startsWith("filter-");
+        })
+        .style("display", "block");
+    d3.select("#playButton").style("display", "block");
+    d3.select("#improvementsButton").style("display", "block");
+}
+
+function setupImprovementsView() {
+    d3.select("#improvementsButton").on("click", function() {
+        switchToImprovementsView();
+    });
 }
 
 function setupFilters() {

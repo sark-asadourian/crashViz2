@@ -80,6 +80,7 @@
     font-size: 20px;
     color: #000;
     margin-right: auto;
+    line-height: 1.2;
 }
 
 .filter-checkbox {
@@ -142,4 +143,77 @@ body {
 
 #locationChart .bar {
     fill: #f18f8f;
+}
+
+header {
+    padding-top: 10px;
+}
+
+/* Improvements View */
+#improvementsButton {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    font-weight: 700;
+    border-radius: 8px;
+    background-color: #e0dad5;
+    border: 1px solid #d0cdc7;
+    color: #000;
+    transition: background-color 0.2s ease;
+}
+
+#improvementsButton:hover {
+    background-color: rgba(220, 207, 186, 0.78);
+}
+
+/* Improvement circles */
+.improvement-circle {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.improvement-circle:hover {
+    opacity: 1 !important;
+    stroke-width: 2px;
+}
+
+/* Improvement tooltip */
+.improvement-tooltip {
+    pointer-events: none;
+}
+
+/* Improvement modal */
+#improvement-modal {
+    font-family: 'Overpass', sans-serif;
+}
+
+#improvement-modal h2 {
+    color: #000;
+    margin-top: 0;
+}
+
+#improvement-modal p {
+    color: #333;
+    line-height: 1.6;
+}
+
+#improvement-modal a:hover {
+    background-color: #333 !important;
+}
+
+/* Factor filter checkboxes */
+.filter-checkbox.speeding {
+    background-color: rgba(237,225,55,0.8) !important;
+}
+
+.filter-checkbox.dark {
+    background-color: rgba(0,0,0,0.64) !important;
+}
+
+.filter-checkbox.ice {
+    background-color: rgba(58,93,220,0.8) !important;
+}
+
+.filter-checkbox.inattentive {
+    background-color: rgba(237,70,55,0.8) !important;
 }
