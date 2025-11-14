@@ -10,14 +10,14 @@ class LocationChart {
     initVis() {
         let vis = this;
 
-        vis.margin = { top: 20, right: 40, bottom: 90, left: 90 };
-        vis.width = 250 - vis.margin.left - vis.margin.right;
-        vis.height = 250 - vis.margin.top - vis.margin.bottom;
+        vis.margin = { top: 13, right: 40, bottom: 120, left: 80 };
+        vis.width = 280 - vis.margin.left - vis.margin.right;
+        vis.height = 280 - vis.margin.top - vis.margin.bottom;
 
         vis.svg = d3.select("#" + vis.parentElement)
             .append("svg")
             .attr("width", vis.width + vis.margin.left + vis.margin.right)
-            .attr("height", vis.height + vis.margin.top + vis.margin.bottom)
+            .attr("height", vis.height + vis.margin.top + vis.margin.bottom + 30)
             .append("g")
             .attr("transform", `translate(${vis.margin.left},${vis.margin.top})`);
 
@@ -25,19 +25,38 @@ class LocationChart {
             .attr("class", "y-axis-label")
             .attr("transform", "rotate(-90)")
             .attr("x", -vis.height / 2)
-            .attr("y", -vis.margin.left +50)
+            .attr("y", -vis.margin.left + 50)
             .attr("text-anchor", "middle")
             .style("font-size", "10px")
             .style("fill", "#333")
             .text("Collisions");
 
-        vis.x = d3.scaleBand().range([0, vis.width]).padding(0.1);
+        vis.x = d3.scaleBand().range([0, vis.width]).padding(0.05);
         vis.y = d3.scaleLinear().range([vis.height, 0]);
 
         vis.xAxis = vis.svg.append("g")
             .attr("transform", `translate(0,${vis.height})`);
 
         vis.yAxis = vis.svg.append("g");
+
+        vis.svg.append("text")
+            .attr("class", "chart-description")
+            .attr("x", vis.width / 2 - 10)
+            .attr("y", vis.height +95)
+            .attr("text-anchor", "middle")
+            .style("font-size", "11px")
+            .style("fill", "#555")
+            .text("Hover for a closer look!");
+
+        vis.tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("position", "absolute")
+            .style("background", "#fff")
+            .style("border", "1px solid #ccc")
+            .style("padding", "6px")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("opacity", 0);
 
         vis.updateVis();
     }
@@ -47,16 +66,15 @@ class LocationChart {
 
         let filtered = vis.data.filter(d =>
             (!vis.selectedYear || d.Year === vis.selectedYear) &&
-            vis.activeFilters.includes(d['Accident Classification'])
+            (vis.activeFilters.length === 0 || vis.activeFilters.includes(d['Accident Classification']))
         );
 
         let counts = d3.rollups(filtered, v => v.length, d => d['Toronto Neighbourhood Name']);
 
-        counts.sort((a,b) => b[1] - a[1]);
-        vis.displayData = counts.slice(0,8);
+        counts.sort((a, b) => b[1] - a[1]);
+        vis.displayData = counts.slice(0, 8);
 
         vis.avgCollisions = d3.mean(counts, d => d[1]);
-
     }
 
     updateVis() {
@@ -66,15 +84,17 @@ class LocationChart {
         const maxCount = vis.displayData.length ? d3.max(vis.displayData, d => d[1]) : 1;
 
         vis.x.domain(vis.displayData.map(d => d[0]));
-        vis.y.domain([0, maxCount]);
+        vis.y.domain([0, maxCount * 1.2]);
 
         vis.xAxis
             .call(d3.axisBottom(vis.x))
             .selectAll("text")
-            .attr("transform", "rotate(-60)")
+            .attr("transform", "rotate(-50)")
             .style("text-anchor", "end")
+            .style("font-size", "8px")
             .attr("dx", "-0.5em")
-            .attr("dy", "0.75em");
+            .attr("dy", "0.75em")
+            .call(this.wrap, vis.x.bandwidth());
 
         vis.yAxis.call(d3.axisLeft(vis.y).ticks(4));
 
@@ -88,6 +108,17 @@ class LocationChart {
             .attr("y", d => vis.y(d[1]))
             .attr("height", d => vis.height - vis.y(d[1]))
             .attr("fill", "#f18f8f")
+            .on("mouseover", function(event, d) {
+                vis.tooltip.transition().duration(200).style("opacity", 0.9);
+                vis.tooltip.html(`<strong>${d[0]}</strong><br/>Collisions: ${d[1]}`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+                d3.select(this).attr("fill", "#d9534f");
+            })
+            .on("mouseout", function(event, d) {
+                vis.tooltip.transition().duration(300).style("opacity", 0);
+                d3.select(this).attr("fill", "#f18f8f");
+            })
             .merge(bars)
             .transition().duration(500)
             .attr("x", d => vis.x(d[0]))
@@ -129,8 +160,8 @@ class LocationChart {
         vis.svg.selectAll(".avg-label").remove();
         vis.svg.append("text")
             .attr("class", "avg-label")
-            .attr("x", vis.width +33)
-            .attr("y", vis.y(vis.avgCollisions)+4 )
+            .attr("x", vis.width + 33)
+            .attr("y", vis.y(vis.avgCollisions) + 4)
             .attr("text-anchor", "end")
             .style("font-size", "11px")
             .style("fill", "steelblue")
@@ -138,7 +169,6 @@ class LocationChart {
 
         labels.exit().remove();
     }
-
 
     setYear(year) {
         this.selectedYear = year;
@@ -148,5 +178,30 @@ class LocationChart {
     setFilters(filters) {
         this.activeFilters = filters;
         this.updateVis();
+    }
+
+    wrap(text, width) {
+        text.each(function() {
+            const textSel = d3.select(this);
+            const original = textSel.text();
+            const words = original.split(/\s+/);
+            if (words.length === 1 && words[0].length > 12) {
+                const word = words[0];
+                const mid = Math.ceil(word.length / 2);
+                const first = word.slice(0, mid);
+                const second = word.slice(mid);
+                textSel.text(null);
+                textSel.append("tspan")
+                    .attr("x", 0)
+                    .attr("dy", "0em")
+                    .text(first);
+                textSel.append("tspan")
+                    .attr("x", 0)
+                    .attr("dy", "1.1em")
+                    .text(second);
+            } else {
+                textSel.text(original);
+            }
+        });
     }
 }
