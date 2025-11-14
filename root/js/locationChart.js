@@ -120,7 +120,7 @@ class LocationChart {
                 d3.select(this).attr("fill", "#f18f8f");
             })
             .merge(bars)
-            .transition().duration(500)
+            .transition().duration(300)
             .attr("x", d => vis.x(d[0]))
             .attr("width", vis.x.bandwidth())
             .attr("y", d => vis.y(d[1]))
@@ -140,7 +140,7 @@ class LocationChart {
             .style("fill", "#333")
             .text(d => d[1])
             .merge(labels)
-            .transition().duration(500)
+            .transition().duration(300)
             .attr("x", d => vis.x(d[0]) + vis.x.bandwidth() / 2)
             .attr("y", d => vis.y(d[1]) - 5)
             .text(d => d[1]);
