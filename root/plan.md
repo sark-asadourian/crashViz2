@@ -2,7 +2,7 @@
 
 ## Cleanup Section (Sark)
 
-### 1. Fix Drop Shadows to Align with Figma (Sark)
+### 1. Fix Drop Shadows to Align with Figma (Sark) 
 - **Files**: `root/css/style.css`, `root/js/timelineVis.js`
 - **Tasks**:
   - Review Figma design specifications for drop shadow values
@@ -11,7 +11,7 @@
   - Update timeline track drop-shadow in `timelineVis.js` line 47 (currently `drop-shadow(0px 4px 1px rgba(0,0,0,0.25))`)
   - Ensure all shadows match Figma specifications exactly
 
-### 2. Round Corners of Triangle Selector (Sark)
+### 2. Round Corners of Triangle Selector (Sark) 
 - **Files**: `root/js/timelineVis.js`
 - **Tasks**:
   - Replace polygon handle (line 66-69) with a rounded shape
@@ -28,7 +28,7 @@
   - Ensure scroll doesn't conflict with timeline drag interaction
   - Add option to enable/disable scroll-based time changing
 
-### 4. Fix Circle Animation (Don't Go to Zero) (Sark)
+### 4. Fix Circle Animation (Don't Go to Zero) (Sark) (fine for now)
 - **Files**: `root/js/mapVis.js`
 - **Tasks**:
   - Modify `updateVis()` method (lines 224-262)
@@ -94,7 +94,7 @@
   - Update chart when year or filters change
   - Style chart to fit in options panel (compact design)
 
-### 10. Zoom and Pan on Map (Sark)
+### 10. Zoom and Pan on Map (Sark) Done
 - **Files**: `root/js/mapVis.js`
 - **Tasks**:
   - Implement D3 zoom behavior using `d3.zoom()`
@@ -105,7 +105,7 @@
   - Reset zoom button
   - Store zoom state and restore on year change if desired
 
-### 11. City Labels on Map (Sark)
+### 11. City Labels on Map (Sark) Done
 - **Files**: `root/js/mapVis.js`, `root/css/style.css`
 - **Tasks**:
   - Define Toronto neighborhood/city center coordinates

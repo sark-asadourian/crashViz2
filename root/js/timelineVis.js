@@ -11,7 +11,7 @@ class TimelineVis {
         vis.selectedYear = vis.yearRange[0];
         vis.onYearChange = null;
 
-        vis.initVis()
+        // Don't auto-initialize - let main.js control initialization
     }
 
     initVis() {
