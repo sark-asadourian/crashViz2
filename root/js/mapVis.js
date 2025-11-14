@@ -20,7 +20,7 @@ class MapVis {
             'Minimal': 'rgba(128,128,128,0.8)'
         };
 
-        vis.initVis()
+        // Don't auto-initialize - let main.js control initialization
     }
 
     initVis() {
@@ -143,6 +143,9 @@ class MapVis {
             .attr("paint-order", "stroke")
             .text(d => d.name);
 
+        // CrashPointsVis will be created and initialized from main.js
+        // Don't create it here to allow main.js to control initialization
+
         // Store initial projection parameters
         if (vis.projection) {
             vis.initialScale = vis.projection.scale();
@@ -156,25 +159,9 @@ class MapVis {
                 // Update roads
                 vis.svg.selectAll(".road").attr("d", vis.path);
                 
-                // Update crash points using projection coordinates
-                // Re-select crash points to ensure we have the current selection
-                let crashPoints = vis.svg.selectAll(".crash-point");
-                if (!crashPoints.empty()) {
-                    crashPoints
-                        .attr("cx", function(d) {
-                            if (d && d.lng !== undefined && d.lat !== undefined) {
-                                let coords = vis.projection([d.lng, d.lat]);
-                                return coords ? coords[0] : 0;
-                            }
-                            return 0;
-                        })
-                        .attr("cy", function(d) {
-                            if (d && d.lng !== undefined && d.lat !== undefined) {
-                                let coords = vis.projection([d.lng, d.lat]);
-                                return coords ? coords[1] : 0;
-                            }
-                            return 0;
-                        });
+                // Update crash points coordinates using CrashPointsVis
+                if (vis.crashPointsVis) {
+                    vis.crashPointsVis.updateCoordinates(vis.projection);
                 }
                 
                 // Update neighborhood labels
@@ -258,7 +245,7 @@ class MapVis {
             // Apply zoom behavior to the SVG (handles both scroll zoom and drag pan)
             vis.svg.call(vis.zoom);
         }
-        
+
         vis.wrangleData();
     }
 
@@ -368,51 +355,10 @@ class MapVis {
     updateVis() {
         let vis = this;
 
-        // D3 update pattern
-        vis.crashPoints = vis.svg.selectAll(".crash-point")
-            .data(vis.clusteredData, d => d.x + '_' + d.y);
-
-        // Exit
-        vis.crashPoints.exit()
-            .remove();
-
-        // Helper function to get x coordinate (use projection if available, otherwise use linear scale)
-        let getX = function(d) {
-            if (vis.projection) {
-                return vis.projection([d.lng, d.lat])[0];
-            }
-            return d.x;
-        };
-        
-        // Helper function to get y coordinate (use projection if available, otherwise use linear scale)
-        let getY = function(d) {
-            if (vis.projection) {
-                return vis.projection([d.lng, d.lat])[1];
-            }
-            return d.y;
-        };
-
-        // Enter
-        vis.enter = vis.crashPoints.enter()
-            .append("circle")
-            .attr("class", "crash-point")
-            .attr("cx", getX)
-            .attr("cy", getY)
-            .attr("r", 0)
-            .attr("opacity", 0)
-            .attr("fill", d => vis.severityColors[d.severity])
-            .attr("stroke", "#fff")
-            .attr("stroke-width", 1);
-
-        // Merge
-        vis.merge = vis.enter.merge(vis.crashPoints);
-
-        vis.merge
-            .attr("cx", getX)
-            .attr("cy", getY)
-            .attr("r", d => d.size / 2)
-            .attr("opacity", 0.8)
-            .attr("fill", d => vis.severityColors[d.severity]);
+        // Update crash points using CrashPointsVis (follows initVis -> wrangleData -> updateVis pattern)
+        if (vis.crashPointsVis) {
+            vis.crashPointsVis.wrangleData(vis.clusteredData);
+        }
         
         // Move labels to the front (on top of crash points)
         vis.svg.selectAll(".neighborhood-label")

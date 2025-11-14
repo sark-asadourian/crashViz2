@@ -49,9 +49,20 @@ function initMainPage(crashData, geoData) {
     let minYear = Math.min(...years);
     let maxYear = Math.max(...years);
 
-    // Initialize visualizations
+    // Create visualization instances (don't initialize yet)
     myMapVis = new MapVis('mapDiv', crashData, geoData);
     myTimelineVis = new TimelineVis('timelineDiv', [minYear, maxYear]);
+
+    // Initialize MapVis first (needed for SVG and projection)
+    myMapVis.initVis();
+
+    // Create and initialize CrashPointsVis with MapVis's SVG and projection
+    myCrashPointsVis = new CrashPointsVis(myMapVis.svg, myMapVis.projection, myMapVis.severityColors);
+    myMapVis.crashPointsVis = myCrashPointsVis; // Store reference in MapVis
+    myCrashPointsVis.initVis();
+
+    // Initialize TimelineVis
+    myTimelineVis.initVis();
 
     // Connect timeline to map
     myTimelineVis.onYearChange = function(year) {
