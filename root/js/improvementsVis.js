@@ -4,40 +4,37 @@
 
 class ImprovementsVis {
 
-    constructor(svg, projection, crashData) {
+    constructor(svg, projection, crashData, timelineVis) {
         let vis = this;
         vis.svg = svg;
         vis.projection = projection;
         vis.crashData = crashData;
+        vis.timelineVis = timelineVis; // Reference to timelineVis
         
         // Improvement types configuration
         vis.improvementTypes = {
             'speeding': {
-                name: 'Speeding',
                 label: 'Speeding',
-                color: 'rgba(237,225,55,0.8)',
                 improvement: 'Dynamic Speed Signs',
+                color: 'rgba(237,225,55,0.8)',
                 url: 'https://roadsafetystrategy.ca/en/listing-directory/roadsafetystrategy/changeable_%28variable%2C_dynamic%2C_active%29_message_signs'
             },
             'dark': {
-                name: 'Dark',
                 label: 'Dark',
-                color: 'rgba(0,0,0,0.64)',
                 improvement: 'Street Lighting',
+                color: 'rgba(0,0,0,0.64)',
                 url: 'https://roadsafetystrategy.ca/en/listing-directory/roadsafetystrategy/street_lighting_and_illumination'
             },
             'ice': {
-                name: 'Ice',
                 label: 'Ice',
-                color: 'rgba(58,93,220,0.8)',
                 improvement: 'Anti-icing Technology',
+                color: 'rgba(58,93,220,0.8)',
                 url: 'https://roadsafetystrategy.ca/en/listing-directory/roadsafetystrategy/anti-icing_technology'
             },
             'inattentive': {
-                name: 'Inattentive Driver',
                 label: 'Inattentive Driver',
-                color: 'rgba(237,70,55,0.8)',
                 improvement: 'Rumble Strips',
+                color: 'rgba(98,228,165,0.8)',
                 url: 'https://roadsafetystrategy.ca/en/listing-directory/roadsafetystrategy/rumble_strips'
             }
         };
@@ -45,304 +42,58 @@ class ImprovementsVis {
         vis.selectedYear = null;
         vis.activeFactors = ['speeding', 'dark', 'ice', 'inattentive'];
         vis.displayData = [];
-        
-        // Don't auto-initialize - let main.js control initialization
+        vis.factorMaxNeeds = {}; // Store max needs per factor for consistent sizing
     }
 
     initVis() {
         let vis = this;
         
-        // Initialize data storage
-        vis.displayData = [];
-        
-        // Create tooltip
+        // Initialize tooltip
         vis.tooltip = d3.select("body").append("div")
             .attr("class", "improvement-tooltip")
-            .style("opacity", 0)
             .style("position", "absolute")
-            .style("background-color", "rgba(0, 0, 0, 0.8)")
-            .style("color", "white")
-            .style("padding", "10px")
-            .style("border-radius", "5px")
+            .style("background", "#fff")
+            .style("border", "1px solid #ccc")
+            .style("padding", "8px")
+            .style("border-radius", "4px")
             .style("pointer-events", "none")
-            .style("font-family", "Overpass, sans-serif")
+            .style("opacity", 0)
             .style("font-size", "12px")
             .style("z-index", "1000");
         
-        // Initially hide improvement circles
+        // Hide circles initially
         vis.hide();
     }
 
-    createFactorFilters() {
-        let vis = this;
-        let optionsPanel = d3.select("#options-panel");
-        
-        // Remove any existing factor filters first
-        optionsPanel.selectAll(".filter-option")
-            .filter(function() {
-                let input = d3.select(this).select("input").node();
-                return input && input.id && input.id.startsWith("factor-");
-            })
-            .remove();
-        
-        // Update title
-        optionsPanel.select(".options-title")
-            .text("Factors in Accident");
-        
-        // Hide existing severity filters (don't remove them)
-        optionsPanel.selectAll(".filter-option")
-            .filter(function() {
-                let input = d3.select(this).select("input").node();
-                return input && input.id && input.id.startsWith("filter-");
-            })
-            .style("display", "none");
-        
-        // Create factor filters
-        let factorData = [
-            { id: 'factor-speeding', key: 'speeding', label: 'Speeding' },
-            { id: 'factor-dark', key: 'dark', label: 'Dark' },
-            { id: 'factor-ice', key: 'ice', label: 'Ice' },
-            { id: 'factor-inattentive', key: 'inattentive', label: 'Inattentive Driver' }
-        ];
-        
-        // Find insertion point - after title, before location chart
-        let title = optionsPanel.select(".options-title").node();
-        let locationChartContainer = optionsPanel.select(".mt-4").node();
-        
-        if (!title || !locationChartContainer) {
-            console.error("Could not find title or location chart container");
-            return;
-        }
-        
-        // Create all filter divs first, then insert them in reverse order
-        // so they appear in the correct order
-        let filterDivs = [];
-        factorData.forEach((factor, i) => {
-            // Create the div element
-            let filterDiv = document.createElement("div");
-            filterDiv.className = "filter-option mb-2";
-            filterDiv.style.display = "block";
-            filterDiv.style.visibility = "visible";
-            filterDivs.push(filterDiv);
-            
-            // Now use D3 to populate it
-            let filterDivD3 = d3.select(filterDiv);
-            
-            filterDivD3.append("input")
-                .attr("type", "checkbox")
-                .attr("id", factor.id)
-                .property("checked", vis.activeFactors.includes(factor.key))
-                .on("change", function() {
-                    vis.updateActiveFactors();
-                });
-            
-            let label = filterDivD3.append("label")
-                .attr("for", factor.id)
-                .attr("class", "d-flex align-items-center");
-            
-            label.append("span")
-                .attr("class", "filter-indicator me-2");
-            
-            let labelSpan = label.append("span")
-                .attr("class", "filter-label me-auto");
-            
-            // Handle "Inattentive Driver" on two lines
-            if (factor.key === 'inattentive') {
-                labelSpan.html("Inattentive<br/>Driver");
-            } else {
-                labelSpan.text(factor.label);
-            }
-            
-            label.append("span")
-                .attr("class", "filter-checkbox " + factor.key)
-                .style("background-color", vis.improvementTypes[factor.key].color);
-        });
-        
-        // Insert all filter divs before location chart container (in reverse order)
-        // so they appear in the correct order (speeding, dark, ice, inattentive)
-        filterDivs.reverse().forEach(filterDiv => {
-            locationChartContainer.parentNode.insertBefore(filterDiv, locationChartContainer);
-        });
-        
-        // Store reference to last factor filter for back button insertion
-        vis.lastFactorFilter = filterDivs[0]; // First in reversed array is last in DOM
-    }
-
-    createBackButton() {
-        let vis = this;
-        let optionsPanel = d3.select("#options-panel");
-        
-        // Remove existing back button if it exists
-        optionsPanel.select("#backButton").remove();
-        
-        // Find location chart container to insert before it
-        let locationChartContainer = optionsPanel.select(".mt-4").node();
-        
-        if (!locationChartContainer) {
-            console.error("Could not find location chart container");
-            return;
-        }
-        
-        // Create back button element
-        let backButtonElement = document.createElement("button");
-        backButtonElement.id = "backButton";
-        backButtonElement.className = "btn btn-primary w-100 mt-3 mb-2";
-        backButtonElement.style.display = "block";
-        backButtonElement.style.visibility = "visible";
-        backButtonElement.textContent = "Back";
-        
-        // Insert before location chart container (after factor filters)
-        locationChartContainer.parentNode.insertBefore(backButtonElement, locationChartContainer);
-        
-        // Use D3 to add styles and event handler
-        d3.select(backButtonElement)
-            .style("background-color", "#000")
-            .style("border", "none")
-            .style("border-radius", "27px")
-            .style("box-shadow", "0px 4px 1px rgba(0,0,0,0.25)")
-            .style("color", "white")
-            .style("font-weight", "700")
-            .style("cursor", "pointer")
-            .on("click", function() {
-                if (vis.onBackClick) {
-                    vis.onBackClick();
-                }
-            });
-    }
-
-    removeFactorFilters() {
-        let vis = this;
-        let optionsPanel = d3.select("#options-panel");
-        
-        // Restore original title
-        optionsPanel.select(".options-title")
-            .text("Filters");
-        
-        // Remove factor filters (only the ones we created)
-        optionsPanel.selectAll(".filter-option")
-            .filter(function() {
-                let input = d3.select(this).select("input").node();
-                return input && input.id && input.id.startsWith("factor-");
-            })
-            .remove();
-        
-        // Show severity filters again
-        optionsPanel.selectAll(".filter-option")
-            .filter(function() {
-                let input = d3.select(this).select("input").node();
-                return input && input.id && input.id.startsWith("filter-");
-            })
-            .style("display", "block");
-        
-        // Remove back button
-        optionsPanel.select("#backButton").remove();
-    }
-
-    updateActiveFactors() {
-        let vis = this;
-        vis.activeFactors = [];
-        
-        ['speeding', 'dark', 'ice', 'inattentive'].forEach(key => {
-            let checkbox = d3.select('#factor-' + key);
-            if (!checkbox.empty() && checkbox.property('checked')) {
-                vis.activeFactors.push(key);
-            }
-        });
-        
-        // Update visualization with new active factors
-        if (vis.selectedYear !== null) {
-            vis.wrangleData(vis.crashData, vis.selectedYear);
-        }
-    }
-
-    wrangleData(crashData, selectedYear) {
+    wrangleData(crashData, year) {
         let vis = this;
         
-        vis.selectedYear = selectedYear;
-        vis.crashData = crashData;
+        vis.selectedYear = year;
         
-        // Filter by year and identify crashes by factor
-        let filteredData = crashData.filter(d => {
-            let year = +d.Year || +d['Year of collision'] || 0;
-            return year === selectedYear &&
-                   d.LATITUDE && 
-                   d.LONGITUDE &&
-                   !isNaN(+d.LATITUDE) && 
-                   !isNaN(+d.LONGITUDE);
+        // Calculate max needs for all factors first (before filtering by activeFactors)
+        // This ensures consistent sizing regardless of filter selection
+        ['speeding', 'dark', 'ice', 'inattentive'].forEach(factorKey => {
+            let factorData = vis.filterByFactor(crashData, year, factorKey);
+            let factorCounts = vis.countByLocation(factorData, factorKey);
+            vis.factorMaxNeeds[factorKey] = factorCounts.length > 0 ? 
+                d3.max(factorCounts, d => d.count) : 1;
         });
         
-        // Identify crashes by factor
-        let crashesByFactor = {
-            'speeding': [],
-            'dark': [],
-            'ice': [],
-            'inattentive': []
-        };
-        
-        filteredData.forEach(d => {
-            // Check for speeding
-            let speeding = (d['Speeding Related'] || '').trim();
-            if (speeding && speeding.toLowerCase() === 'yes') {
-                crashesByFactor.speeding.push(d);
-            }
-            
-            // Check for darkness
-            let light = (d.LIGHT || '').trim().replace(/^"|"$/g, '');
-            if (light === 'Dark') {
-                crashesByFactor.dark.push(d);
-            }
-            
-            // Check for ice
-            let roadSurface = (d['Road Surface Condition'] || '').trim().replace(/^"|"$/g, '');
-            if (roadSurface === 'Ice') {
-                crashesByFactor.ice.push(d);
-            }
-            
-            // Check for inattentive drivers
-            let distracted = (d['Aggressive and Distracted Driving Related'] || '').trim();
-            if (distracted && distracted.toLowerCase() === 'yes') {
-                crashesByFactor.inattentive.push(d);
-            }
-        });
-        
-        // Group by location and factor type, calculate need levels
+        // Now filter by active factors
         vis.displayData = [];
         
         vis.activeFactors.forEach(factorKey => {
-            let crashes = crashesByFactor[factorKey];
-            if (crashes.length === 0) return;
+            let factorData = vis.filterByFactor(crashData, year, factorKey);
+            let factorCounts = vis.countByLocation(factorData, factorKey);
             
-            // Group by location (cluster nearby crashes)
-            let clusterMap = {};
-            crashes.forEach(crash => {
-                let lat = +crash.LATITUDE;
-                let lng = +crash.LONGITUDE;
-                
-                // Round to nearest 0.001 degrees for clustering (~100m)
-                let roundedLat = Math.round(lat * 1000) / 1000;
-                let roundedLng = Math.round(lng * 1000) / 1000;
-                let key = roundedLat + '_' + roundedLng;
-                
-                if (!clusterMap[key]) {
-                    clusterMap[key] = [];
-                }
-                clusterMap[key].push(crash);
-            });
-            
-            // Create improvement points
-            Object.values(clusterMap).forEach(cluster => {
-                let baseCrash = cluster[0];
-                let needLevel = cluster.length;
-                
+            factorCounts.forEach(d => {
                 vis.displayData.push({
-                    lat: +baseCrash.LATITUDE,
-                    lng: +baseCrash.LONGITUDE,
+                    lat: d.lat,
+                    lng: d.lng,
                     factor: factorKey,
-                    needLevel: needLevel,
-                    crashCount: needLevel,
+                    needLevel: d.count,
                     improvement: vis.improvementTypes[factorKey].improvement,
-                    color: vis.improvementTypes[factorKey].color,
-                    url: vis.improvementTypes[factorKey].url
+                    color: vis.improvementTypes[factorKey].color
                 });
             });
         });
@@ -350,34 +101,104 @@ class ImprovementsVis {
         vis.updateVis();
     }
 
+    filterByFactor(crashData, year, factorKey) {
+        let vis = this;
+        
+        return crashData.filter(d => {
+            let crashYear = +d.Year || +d['Year of collision'] || 0;
+            if (crashYear !== year) return false;
+            
+            // Check if crash matches the factor
+            switch(factorKey) {
+                case 'speeding':
+                    // Check "Speeding Related" column
+                    let speeding = (d['Speeding Related'] || '').toString().trim().toLowerCase();
+                    return speeding === 'yes' || speeding === '1' || speeding === 'true';
+                
+                case 'dark':
+                    // Check "LIGHT" column for dark conditions
+                    let light = (d.LIGHT || '').toString().trim();
+                    return light === 'Dark' || light === 'Dusk' || light === 'Dawn';
+                
+                case 'ice':
+                    // Check "Road Surface Condition" for ice
+                    let roadSurface = (d['Road Surface Condition'] || '').toString().trim();
+                    return roadSurface.toLowerCase().includes('ice') || 
+                           roadSurface.toLowerCase().includes('icy') ||
+                           roadSurface.toLowerCase().includes('snow');
+                
+                case 'inattentive':
+                    // Check "Aggressive and Distracted Driving Related"
+                    let aggressive = (d['Aggressive and Distracted Driving Related'] || '').toString().trim().toLowerCase();
+                    return aggressive === 'yes' || aggressive === '1' || aggressive === 'true';
+                
+                default:
+                    return false;
+            }
+        });
+    }
+
+    countByLocation(crashes, factorKey) {
+        let vis = this;
+        
+        // Group by rounded location (cluster nearby crashes within ~100 meters)
+        let clusterMap = {};
+        const clusterRadius = 0.001; // ~100 meters in degrees
+        
+        crashes.forEach(d => {
+            if (!d.LATITUDE || !d.LONGITUDE || isNaN(d.LATITUDE) || isNaN(d.LONGITUDE)) return;
+            
+            // Round to cluster radius
+            let roundedLat = Math.round(d.LATITUDE / clusterRadius) * clusterRadius;
+            let roundedLng = Math.round(d.LONGITUDE / clusterRadius) * clusterRadius;
+            let key = roundedLat + '_' + roundedLng;
+            
+            if (!clusterMap[key]) {
+                clusterMap[key] = {
+                    lat: roundedLat,
+                    lng: roundedLng,
+                    count: 0
+                };
+            }
+            clusterMap[key].count++;
+        });
+        
+        return Object.values(clusterMap);
+    }
+
     updateVis() {
         let vis = this;
 
         // Helper function to get x coordinate
         let getX = function(d) {
-            if (vis.projection) {
-                return vis.projection([d.lng, d.lat])[0];
+            if (vis.projection && d.lng !== undefined && d.lat !== undefined) {
+                let coords = vis.projection([d.lng, d.lat]);
+                return coords ? coords[0] : 0;
             }
             return 0;
         };
         
         // Helper function to get y coordinate
         let getY = function(d) {
-            if (vis.projection) {
-                return vis.projection([d.lng, d.lat])[1];
+            if (vis.projection && d.lng !== undefined && d.lat !== undefined) {
+                let coords = vis.projection([d.lng, d.lat]);
+                return coords ? coords[1] : 0;
             }
             return 0;
         };
         
-        // Calculate radius scale based on need level (area-based)
-        let maxNeed = d3.max(vis.displayData, d => d.needLevel) || 1;
-        let minRadius = 5;
-        let maxRadius = 30;
-        let radiusScale = d3.scaleSqrt()
-            .domain([1, maxNeed])
-            .range([minRadius, maxRadius]);
+        // Calculate radius scale independently for each factor
+        let radiusScales = {};
+        let minRadius = 3; // Smaller circles
+        let maxRadius = 15; // Smaller circles
+        
+        ['speeding', 'dark', 'ice', 'inattentive'].forEach(factorKey => {
+            let maxNeed = vis.factorMaxNeeds[factorKey] || 1; // Use stored max needs
+            radiusScales[factorKey] = d3.scaleSqrt()
+                .domain([1, maxNeed])
+                .range([minRadius, maxRadius]);
+        });
 
-        // D3 update pattern - Bind data with key function
         let improvementCircles = vis.svg.selectAll(".improvement-circle")
             .data(vis.displayData, d => d.lat + '_' + d.lng + '_' + d.factor);
 
@@ -400,18 +221,14 @@ class ImprovementsVis {
             .attr("fill", d => d.color)
             .attr("stroke", "#fff")
             .attr("stroke-width", 1)
-            .style("cursor", "pointer")
             .on("mouseover", function(event, d) {
                 vis.showTooltip(event, d);
             })
-            .on("mousemove", function(event, d) {
+            .on("mousemove", function(event) {
                 vis.moveTooltip(event);
             })
             .on("mouseout", function() {
                 vis.hideTooltip();
-            })
-            .on("dblclick", function(event, d) {
-                vis.showDetailModal(d);
             });
 
         // Merge - Combine enter and update selections, set final state
@@ -422,7 +239,10 @@ class ImprovementsVis {
             .duration(300)
             .attr("cx", getX)
             .attr("cy", getY)
-            .attr("r", d => radiusScale(d.needLevel))
+            .attr("r", d => {
+                let scale = radiusScales[d.factor];
+                return scale ? scale(d.needLevel) : minRadius;
+            })
             .attr("opacity", 0.8)
             .attr("fill", d => d.color);
     }
@@ -431,11 +251,7 @@ class ImprovementsVis {
         let vis = this;
         vis.tooltip
             .style("opacity", 1)
-            .html(`
-                <strong>${d.improvement}</strong><br/>
-                Factor: ${vis.improvementTypes[d.factor].name}<br/>
-                Crashes: ${d.crashCount}
-            `);
+            .html(`Possible solution: ${d.improvement}<br/>Number of crashes: ${d.needLevel}`);
         vis.moveTooltip(event);
     }
 
@@ -443,99 +259,301 @@ class ImprovementsVis {
         let vis = this;
         vis.tooltip
             .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 10) + "px");
+            .style("top", (event.pageY - 28) + "px");
     }
 
     hideTooltip() {
         let vis = this;
-        vis.tooltip.style("opacity", 0);
+        vis.tooltip
+            .style("opacity", 0);
     }
 
-    showDetailModal(d) {
+    createFactorFilters() {
         let vis = this;
+        let optionsPanel = d3.select("#options-panel");
         
-        // Remove existing modal if any
-        d3.select("#improvement-modal").remove();
+        // Remove any existing factor filters
+        optionsPanel.selectAll(".filter-option")
+            .filter(function() {
+                let inputId = d3.select(this).select("input").attr("id");
+                return inputId && inputId.startsWith("factor-filter-");
+            })
+            .remove();
         
-        // Create modal
-        let modal = d3.select("body")
-            .append("div")
-            .attr("id", "improvement-modal")
-            .style("position", "fixed")
-            .style("top", "0")
-            .style("left", "0")
-            .style("width", "100%")
-            .style("height", "100%")
-            .style("background-color", "rgba(0, 0, 0, 0.7)")
-            .style("z-index", "2000")
-            .style("display", "flex")
-            .style("align-items", "center")
-            .style("justify-content", "center")
-            .on("click", function() {
-                modal.remove();
-            });
+        // Update title
+        optionsPanel.select(".options-title").text("Factors in Accident");
         
-        let modalContent = modal.append("div")
-            .style("background-color", "white")
-            .style("padding", "30px")
-            .style("border-radius", "12px")
-            .style("max-width", "600px")
-            .style("max-height", "80vh")
-            .style("overflow-y", "auto")
-            .style("position", "relative")
-            .on("click", function(event) {
-                event.stopPropagation();
-            });
+        // Hide severity filters
+        optionsPanel.selectAll(".filter-option")
+            .filter(function() {
+                let inputId = d3.select(this).select("input").attr("id");
+                return inputId && inputId.startsWith("filter-") && !inputId.startsWith("factor-filter-");
+            })
+            .style("display", "none");
         
-        modalContent.append("button")
-            .style("position", "absolute")
-            .style("top", "10px")
-            .style("right", "10px")
-            .style("background", "none")
-            .style("border", "none")
-            .style("font-size", "24px")
-            .style("cursor", "pointer")
-            .text("×")
-            .on("click", function() {
-                modal.remove();
-            });
+        // Factor data
+        let factorData = [
+            { key: 'speeding', label: 'Speeding', color: vis.improvementTypes.speeding.color },
+            { key: 'dark', label: 'Dark', color: vis.improvementTypes.dark.color },
+            { key: 'ice', label: 'Ice', color: vis.improvementTypes.ice.color },
+            { key: 'inattentive', label: 'Inattentive Driver', color: vis.improvementTypes.inattentive.color }
+        ];
         
-        modalContent.append("h2")
-            .style("font-family", "Overpass, sans-serif")
-            .style("font-weight", "800")
-            .style("margin-bottom", "20px")
-            .text(d.improvement);
+        let title = optionsPanel.select(".options-title").node();
+        let locationChartContainer = optionsPanel.select(".mt-4").node();
         
-        modalContent.append("p")
-            .style("font-family", "Overpass, sans-serif")
-            .style("margin-bottom", "10px")
-            .html(`<strong>Factor:</strong> ${vis.improvementTypes[d.factor].name}`);
+        // Create filter divs
+        let filterDivs = [];
+        factorData.forEach((factor, i) => {
+            let filterDiv = document.createElement("div");
+            filterDiv.className = "filter-option mb-2";
+            filterDiv.style.display = "block";
+            filterDiv.style.visibility = "visible";
+            
+            let filterDivD3 = d3.select(filterDiv);
+            filterDivD3.append("input")
+                .attr("type", "checkbox")
+                .attr("id", "factor-filter-" + factor.key)
+                .attr("checked", vis.activeFactors.includes(factor.key) ? "checked" : null)
+                .on("change", function() {
+                    vis.updateActiveFactors();
+                });
+            
+            let label = filterDivD3.append("label")
+                .attr("for", "factor-filter-" + factor.key)
+                .attr("class", "d-flex align-items-center")
+                .style("cursor", "pointer");
+            
+            label.append("span")
+                .attr("class", "filter-indicator me-2");
+            
+            let labelSpan = label.append("span")
+                .attr("class", "filter-label me-auto");
+            
+            labelSpan.text(factor.label);
+            
+            label.append("span")
+                .attr("class", "filter-checkbox " + factor.key);
+            
+            // Add link under each filter
+            let improvementLink = filterDivD3.append("a")
+                .attr("href", vis.improvementTypes[factor.key].url)
+                .attr("target", "_blank")
+                .style("display", "block")
+                .style("margin-top", "4px")
+                .style("margin-left", "23px") // Align with filter label (checkbox width + margin)
+                .style("font-size", "12px")
+                .style("color", "#000")
+                .style("text-decoration", "underline")
+                .style("cursor", "pointer")
+                .text("Possible improvement: " + vis.improvementTypes[factor.key].improvement);
+            
+            filterDivs.push(filterDiv);
+        });
         
-        modalContent.append("p")
-            .style("font-family", "Overpass, sans-serif")
-            .style("margin-bottom", "10px")
-            .html(`<strong>Number of crashes:</strong> ${d.crashCount}`);
-        
-        modalContent.append("p")
-            .style("font-family", "Overpass, sans-serif")
-            .style("margin-bottom", "20px")
-            .html(`<strong>Location:</strong> ${d.lat.toFixed(4)}, ${d.lng.toFixed(4)}`);
-        
-        modalContent.append("a")
-            .attr("href", d.url)
-            .attr("target", "_blank")
-            .style("display", "inline-block")
-            .style("padding", "10px 20px")
-            .style("background-color", "#000")
-            .style("color", "white")
-            .style("text-decoration", "none")
-            .style("border-radius", "5px")
-            .style("font-family", "Overpass, sans-serif")
-            .style("font-weight", "700")
-            .text("Learn More");
+        // Insert filters in reverse order (so they appear in correct order in DOM)
+        filterDivs.reverse().forEach(filterDiv => {
+            locationChartContainer.parentNode.insertBefore(filterDiv, locationChartContainer);
+        });
     }
 
-    // Update positions of existing circles when map zooms/pans
+    createBackButton() {
+        let vis = this;
+        let optionsPanel = d3.select("#options-panel");
+        
+        // Remove existing button container if any
+        optionsPanel.select("#improvements-button-container").remove();
+        
+        let locationChartContainer = optionsPanel.select(".mt-4").node();
+        
+        // Create button container
+        let buttonContainer = document.createElement("div");
+        buttonContainer.id = "improvements-button-container";
+        buttonContainer.className = "d-flex gap-2 mt-3 mb-2";
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.gap = "8px";
+        
+        // Create play button
+        let playButtonElement = document.createElement("button");
+        playButtonElement.id = "improvementsPlayButton";
+        playButtonElement.className = "btn";
+        playButtonElement.style.width = "55px";
+        playButtonElement.style.height = "40px";
+        playButtonElement.style.padding = "0";
+        playButtonElement.style.fontWeight = "700";
+        playButtonElement.style.borderRadius = "8px";
+        playButtonElement.style.backgroundColor = "#000";
+        playButtonElement.style.border = "1px solid #000";
+        playButtonElement.style.color = "#fff";
+        playButtonElement.style.transition = "background-color 0.2s ease";
+        playButtonElement.style.display = "flex";
+        playButtonElement.style.alignItems = "center";
+        playButtonElement.style.justifyContent = "center";
+        playButtonElement.style.fontSize = "16px";
+        playButtonElement.style.cursor = "pointer";
+        playButtonElement.textContent = (vis.timelineVis && vis.timelineVis.isPlaying) ? "⏸" : "▶";
+        
+        playButtonElement.onmouseover = function() {
+            this.style.backgroundColor = "#333";
+        };
+        playButtonElement.onmouseout = function() {
+            this.style.backgroundColor = "#000";
+        };
+        
+        playButtonElement.onclick = function() {
+            if (vis.timelineVis) {
+                if (vis.timelineVis.isPlaying) {
+                    vis.timelineVis.pause();
+                    this.textContent = "▶";
+                } else {
+                    vis.timelineVis.play();
+                    this.textContent = "⏸";
+                }
+            }
+        };
+        
+        // Create back button
+        let backButtonElement = document.createElement("button");
+        backButtonElement.id = "backButton";
+        backButtonElement.className = "btn flex-grow-1";
+        backButtonElement.style.height = "40px";
+        backButtonElement.style.padding = "10px";
+        backButtonElement.style.fontWeight = "700";
+        backButtonElement.style.borderRadius = "8px";
+        backButtonElement.style.backgroundColor = "#000";
+        backButtonElement.style.border = "1px solid #000";
+        backButtonElement.style.color = "#fff";
+        backButtonElement.style.transition = "background-color 0.2s ease";
+        backButtonElement.style.cursor = "pointer";
+        backButtonElement.textContent = "Back";
+        
+        backButtonElement.onmouseover = function() {
+            this.style.backgroundColor = "#333";
+        };
+        backButtonElement.onmouseout = function() {
+            this.style.backgroundColor = "#000";
+        };
+        
+        backButtonElement.onclick = function() {
+            if (vis.onBackClick) {
+                vis.onBackClick();
+            }
+        };
+        
+        buttonContainer.appendChild(playButtonElement);
+        buttonContainer.appendChild(backButtonElement);
+        
+        locationChartContainer.parentNode.insertBefore(buttonContainer, locationChartContainer);
+    }
+
+    createImprovementsList() {
+        let vis = this;
+        let optionsPanel = d3.select("#options-panel");
+        
+        // Remove existing list if any
+        optionsPanel.select("#improvements-list").remove();
+        
+        let buttonContainer = optionsPanel.select("#improvements-button-container").node();
+        if (!buttonContainer) return;
+        
+        // Create list container
+        let listContainer = document.createElement("div");
+        listContainer.id = "improvements-list";
+        listContainer.className = "mt-3";
+        listContainer.style.display = "block";
+        
+        // Improvements data
+        let improvementsData = [
+            { factor: 'speeding', text: 'Dynamic Speed Signs' },
+            { factor: 'dark', text: 'Street Lighting' },
+            { factor: 'ice', text: 'Anti-icing Technology' },
+            { factor: 'inattentive', text: 'Rumble Strips' }
+        ];
+        
+        improvementsData.forEach(improvement => {
+            let link = document.createElement("a");
+            link.href = vis.improvementTypes[improvement.factor].url;
+            link.target = "_blank";
+            link.style.display = "block";
+            link.style.marginBottom = "8px";
+            link.style.color = "#000";
+            link.style.textDecoration = "none";
+            link.style.fontSize = "14px";
+            link.style.cursor = "pointer";
+            link.textContent = improvement.text;
+            
+            link.onmouseover = function() {
+                this.style.textDecoration = "underline";
+            };
+            link.onmouseout = function() {
+                this.style.textDecoration = "none";
+            };
+            
+            listContainer.appendChild(link);
+        });
+        
+        buttonContainer.parentNode.insertBefore(listContainer, buttonContainer.nextSibling);
+    }
+
+    removeFactorFilters() {
+        let vis = this;
+        let optionsPanel = d3.select("#options-panel");
+        
+        // Restore original title
+        optionsPanel.select(".options-title").text("Filters");
+        
+        // Remove factor filters
+        optionsPanel.selectAll(".filter-option")
+            .filter(function() {
+                let inputId = d3.select(this).select("input").attr("id");
+                return inputId && inputId.startsWith("factor-filter-");
+            })
+            .remove();
+        
+        // Remove button container
+        optionsPanel.select("#improvements-button-container").remove();
+        
+        // Remove improvements list
+        optionsPanel.select("#improvements-list").remove();
+        
+        // Show severity filters
+        optionsPanel.selectAll(".filter-option")
+            .filter(function() {
+                let inputId = d3.select(this).select("input").attr("id");
+                return inputId && inputId.startsWith("filter-") && !inputId.startsWith("factor-filter-");
+            })
+            .style("display", "block");
+    }
+
+    updateActiveFactors() {
+        let vis = this;
+        vis.activeFactors = [];
+        
+        ['speeding', 'dark', 'ice', 'inattentive'].forEach(factorKey => {
+            let checkbox = d3.select("#factor-filter-" + factorKey).node();
+            if (checkbox && checkbox.checked) {
+                vis.activeFactors.push(factorKey);
+            }
+        });
+        
+        // Trigger update if we have a selected year
+        if (vis.selectedYear !== null && vis.crashData) {
+            vis.wrangleData(vis.crashData, vis.selectedYear);
+        }
+    }
+
+    show() {
+        let vis = this;
+        vis.svg.selectAll(".improvement-circle")
+            .style("display", "block");
+    }
+
+    hide() {
+        let vis = this;
+        vis.svg.selectAll(".improvement-circle")
+            .style("display", "none");
+    }
+
     updateCoordinates(projection) {
         let vis = this;
         vis.projection = projection;
@@ -558,16 +576,6 @@ class ImprovementsVis {
                     return 0;
                 });
         }
-    }
-
-    show() {
-        let vis = this;
-        vis.svg.selectAll(".improvement-circle").style("display", "block");
-    }
-
-    hide() {
-        let vis = this;
-        vis.svg.selectAll(".improvement-circle").style("display", "none");
     }
 }
 

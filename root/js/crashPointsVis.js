@@ -18,6 +18,19 @@ class CrashPointsVis {
         
         // Initialize data storage
         vis.displayData = [];
+        
+        // Initialize tooltip
+        vis.tooltip = d3.select("body").append("div")
+            .attr("class", "crash-point-tooltip")
+            .style("position", "absolute")
+            .style("background", "#fff")
+            .style("border", "1px solid #ccc")
+            .style("padding", "8px")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("opacity", 0)
+            .style("font-size", "12px")
+            .style("z-index", "1000");
     }
 
     wrangleData(data) {
@@ -66,10 +79,30 @@ class CrashPointsVis {
             .attr("opacity", 0)
             .attr("fill", d => vis.severityColors[d.severity])
             .attr("stroke", "#fff")
-            .attr("stroke-width", 1);
+            .attr("stroke-width", 1)
+            .on("mouseover", function(event, d) {
+                vis.showTooltip(event, d);
+            })
+            .on("mousemove", function(event) {
+                vis.moveTooltip(event);
+            })
+            .on("mouseout", function() {
+                vis.hideTooltip();
+            });
 
         // Merge - Combine enter and update selections, set final state
         let merge = enter.merge(crashPoints);
+
+        // Add event handlers to existing crash points as well
+        crashPoints.on("mouseover", function(event, d) {
+                vis.showTooltip(event, d);
+            })
+            .on("mousemove", function(event) {
+                vis.moveTooltip(event);
+            })
+            .on("mouseout", function() {
+                vis.hideTooltip();
+            });
 
         merge
             .attr("cx", getX)
@@ -102,6 +135,27 @@ class CrashPointsVis {
                     return d.y || 0;
                 });
         }
+    }
+
+    showTooltip(event, d) {
+        let vis = this;
+        vis.tooltip
+            .style("opacity", 1)
+            .html(`Number of crashes: ${d.count || 1}`);
+        vis.moveTooltip(event);
+    }
+
+    moveTooltip(event) {
+        let vis = this;
+        vis.tooltip
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 28) + "px");
+    }
+
+    hideTooltip() {
+        let vis = this;
+        vis.tooltip
+            .style("opacity", 0);
     }
 }
 

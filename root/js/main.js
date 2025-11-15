@@ -9,6 +9,7 @@ let myMapVis,
     myCrashPointsVis,
     myImprovementsVis;
 let currentView = 'map'; // 'map' or 'improvements'
+let globalCrashData = null; // Store crash data globally for access in view switching
 
 // Load data using promises
 let promises = [
@@ -48,6 +49,9 @@ function initMainPage(crashData, geoData) {
         d.LATITUDE >= 43.5 && d.LATITUDE <= 44.0 &&
         d.LONGITUDE >= -79.8 && d.LONGITUDE <= -79.0
     );
+    
+    // Store crash data globally for access in view switching
+    globalCrashData = crashData;
 
     // Find actual year range from data
     let years = crashData.map(d => d.Year).filter(y => y > 0);
@@ -56,6 +60,7 @@ function initMainPage(crashData, geoData) {
 
     // Create visualization instances (don't initialize yet)
     myMapVis = new MapVis('mapDiv', crashData, geoData);
+    myMapVis.currentView = 'map'; // Initialize current view
     myTimelineVis = new TimelineVis('timelineDiv', [minYear, maxYear]);
     myLocationChart = new LocationChart('locationChart', crashData);
 
@@ -65,8 +70,7 @@ function initMainPage(crashData, geoData) {
     // Initialize TimelineVis
     myTimelineVis.initVis();
 
-    // Initialize LocationChart
-    myLocationChart.initVis();
+    // LocationChart is already initialized in constructor
 
     // Create and initialize CrashPointsVis with MapVis's SVG and projection
     myCrashPointsVis = new CrashPointsVis(myMapVis.svg, myMapVis.projection, myMapVis.severityColors);
@@ -74,7 +78,7 @@ function initMainPage(crashData, geoData) {
     myCrashPointsVis.initVis();
 
     // Create and initialize ImprovementsVis with MapVis's SVG and projection
-    myImprovementsVis = new ImprovementsVis(myMapVis.svg, myMapVis.projection, crashData);
+    myImprovementsVis = new ImprovementsVis(myMapVis.svg, myMapVis.projection, crashData, myTimelineVis);
     myMapVis.improvementsVis = myImprovementsVis; // Store reference in MapVis
     myImprovementsVis.initVis();
     myImprovementsVis.onBackClick = function() {
@@ -85,10 +89,30 @@ function initMainPage(crashData, geoData) {
     myTimelineVis.onYearChange = function(year) {
         myMapVis.setYear(year);
         myLocationChart.setYear(year);
+        // Update improvements when in improvements view (both manual and playing)
         if (myImprovementsVis && currentView === 'improvements') {
-            myImprovementsVis.wrangleData(crashData, year);
+            myImprovementsVis.wrangleData(globalCrashData, year);
         }
     };
+    
+    // Connect play/pause to improvements
+    if (myTimelineVis) {
+        let originalPlay = myTimelineVis.play;
+        let originalPause = myTimelineVis.pause;
+        
+        myTimelineVis.play = function() {
+            if (originalPlay) originalPlay.call(this);
+            // Draw factors when play starts
+            if (currentView === 'improvements' && myImprovementsVis) {
+                myImprovementsVis.wrangleData(globalCrashData, myTimelineVis.selectedYear);
+            }
+        };
+        
+        myTimelineVis.pause = function() {
+            if (originalPause) originalPause.call(this);
+            // Don't clear factors on pause, just stop updating
+        };
+    }
 
     // Set initial year
     myTimelineVis.setYear(minYear);
@@ -107,6 +131,11 @@ function initMainPage(crashData, geoData) {
 
 function switchToImprovementsView() {
     currentView = 'improvements';
+    
+    // Update MapVis with current view state
+    if (myMapVis) {
+        myMapVis.currentView = 'improvements';
+    }
     
     // Hide crash points
     if (myCrashPointsVis) {
@@ -131,12 +160,18 @@ function switchToImprovementsView() {
         myImprovementsVis.show();
         myImprovementsVis.createFactorFilters();
         myImprovementsVis.createBackButton();
-        myImprovementsVis.wrangleData(myMapVis.crashData, myTimelineVis.selectedYear);
+        // Draw factors for current year
+        myImprovementsVis.wrangleData(globalCrashData, myTimelineVis.selectedYear);
     }
 }
 
 function switchToMapView() {
     currentView = 'map';
+    
+    // Update MapVis with current view state
+    if (myMapVis) {
+        myMapVis.currentView = 'map';
+    }
     
     // Show crash points
     if (myCrashPointsVis) {
@@ -169,6 +204,78 @@ function setupImprovementsView() {
     d3.select("#improvementsButton").on("click", function() {
         switchToImprovementsView();
     });
+    
+    // Set up play button handler
+    d3.select("#playButton").on("click", function() {
+        if (myTimelineVis) {
+            if (myTimelineVis.isPlaying) {
+                myTimelineVis.pause();
+                this.textContent = "▶";
+            } else {
+                myTimelineVis.play();
+                this.textContent = "⏸";
+            }
+        }
+    });
+    
+    // Set up info button handler
+    d3.select("#infoButton").on("click", function() {
+        showInfoModal();
+    });
+}
+
+function showInfoModal() {
+    // Remove existing modal if any
+    d3.select("#info-modal").remove();
+    
+    // Create modal
+    let modal = d3.select("body")
+        .append("div")
+        .attr("id", "info-modal")
+        .style("position", "fixed")
+        .style("top", "0")
+        .style("left", "0")
+        .style("width", "100%")
+        .style("height", "100%")
+        .style("background-color", "rgba(0, 0, 0, 0.7)")
+        .style("z-index", "2000")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("justify-content", "center")
+        .on("click", function() {
+            modal.remove();
+        });
+    
+    let modalContent = modal.append("div")
+        .style("background-color", "white")
+        .style("padding", "30px")
+        .style("border-radius", "12px")
+        .style("max-width", "600px")
+        .style("max-height", "80vh")
+        .style("overflow-y", "auto")
+        .style("position", "relative")
+        .on("click", function(event) {
+            event.stopPropagation();
+        });
+    
+    modalContent.append("button")
+        .style("position", "absolute")
+        .style("top", "10px")
+        .style("right", "10px")
+        .style("background", "none")
+        .style("border", "none")
+        .style("font-size", "24px")
+        .style("cursor", "pointer")
+        .text("×")
+        .on("click", function() {
+            modal.remove();
+        });
+    
+    modalContent.append("p")
+        .style("font-family", "Overpass, sans-serif")
+        .style("margin-bottom", "15px")
+        .style("line-height", "1.6")
+        .html("This visualization maps traffic collision patterns across Toronto neighborhoods, revealing where and why accidents occur. The severity map uses color intensity to highlight accident hotspots, while the improvements view shows factors that could be improved with simple road interventions.<br/><br/>Use the play button to animate changes year-by-year, revealing temporal trends in collision patterns and the effectiveness of safety measures over time.<br/><br/>Crash data: <a href='https://data.torontopolice.on.ca/datasets/TorontoPS::traffic-collisions-open-data-asr-t-tbl-001/about' target='_blank' style='color: #0066cc; text-decoration: underline;'>https://data.torontopolice.on.ca/datasets/TorontoPS::traffic-collisions-open-data-asr-t-tbl-001/about</a><br/>Map: <a href='https://open.toronto.ca/dataset/toronto-centreline-tcl/' target='_blank' style='color: #0066cc; text-decoration: underline;'>https://open.toronto.ca/dataset/toronto-centreline-tcl/</a>");
 }
 
 function setupFilters() {

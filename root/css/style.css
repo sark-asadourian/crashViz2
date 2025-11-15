@@ -28,7 +28,6 @@
     height: 614px;
     background-color: #fff;
     border-radius: 12px;
-    box-shadow: inset 0px 4px 1px rgba(0,0,0,0.25);
     padding: 20px;
 }
 
@@ -101,20 +100,12 @@
     top: 600px;
 }
 
-#playButton {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    font-weight: 700;
-    border-radius: 8px;
-    background-color: #e0dad5;;
-    border: 1px solid #d0cdc7;;
-    color: #000;
-    transition: background-color 0.2s ease;
+#playButton:hover {
+    background-color: #333;
 }
 
-#playButton:hover {
-    background-color: rgba(220, 207, 186, 0.78);
+#improvementsButton:hover {
+    background-color: #333;
 }
 
 body {
@@ -156,14 +147,14 @@ header {
     padding: 10px;
     font-weight: 700;
     border-radius: 8px;
-    background-color: #e0dad5;
-    border: 1px solid #d0cdc7;
-    color: #000;
+    background-color: #000;
+    border: 1px solid #000;
+    color: #fff;
     transition: background-color 0.2s ease;
 }
 
 #improvementsButton:hover {
-    background-color: rgba(220, 207, 186, 0.78);
+    background-color: #333;
 }
 
 /* Improvement circles */
@@ -215,5 +206,5 @@ header {
 }
 
 .filter-checkbox.inattentive {
-    background-color: rgba(237,70,55,0.8) !important;
+    background-color: rgba(98,228,165,0.8) !important;
 }
